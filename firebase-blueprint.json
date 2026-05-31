@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "Notice": {
+      "title": "Notice",
+      "description": "삼잘한의원 공지사항 모델",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "공지사항 제목"
+        },
+        "content": {
+          "type": "string",
+          "description": "공지사항 내용"
+        },
+        "date": {
+          "type": "string",
+          "description": "등록일자 (예: YYYY-MM-DD)"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "공지사항 상단 고정 여부"
+        },
+        "views": {
+          "type": "integer",
+          "description": "조회수"
+        }
+      },
+      "required": ["title", "content", "date", "isPinned"]
+    }
+  },
+  "firestore": {
+    "notices": {
+      "schema": "Notice",
+      "description": "공지사항 컬렉션"
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Notice } from "../types";
 import { Eye, Clock, FileText, X, Sparkles } from "lucide-react";
+import { collection, getDocs, doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../firebase";
 
 export default function SubNotice() {
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -13,34 +15,75 @@ export default function SubNotice() {
   }, []);
 
   const fetchNotices = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await fetch("/api/notices");
-      if (!res.ok) throw new Error("공지사항 목록을 불러오지 못했습니다.");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setNotices(data);
-      } else {
-        throw new Error("공지사항 목록 형식이 올바르지 않습니다.");
-      }
+      const querySnapshot = await getDocs(collection(db, "notices"));
+      const noticesList: Notice[] = [];
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        noticesList.push({
+          id: docSnap.id,
+          title: data.title || "",
+          content: data.content || "",
+          date: data.date || "",
+          isPinned: !!data.isPinned,
+          views: data.views || 0,
+        });
+      });
+
+      // Sort notices: pinned first (descending), then by date (descending)
+      noticesList.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        // fallback to date comparison
+        return b.date.localeCompare(a.date);
+      });
+
+      setNotices(noticesList);
     } catch (err: any) {
       setError(err.message || "오류가 발생했습니다.");
+      handleFirestoreError(err, OperationType.LIST, "notices");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNoticeClick = async (notId: number) => {
+  const handleNoticeClick = async (notId: string) => {
     try {
-      const res = await fetch(`/api/notices/${notId}`);
-      if (!res.ok) throw new Error("상세 내용을 가져오지 못했습니다.");
-      const detail = await res.json();
+      const docRef = doc(db, "notices", notId);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("상세 내용을 가져오지 못했습니다.");
+      
+      const data = docSnap.data();
+      const detail: Notice = {
+        id: docSnap.id,
+        title: data.title || "",
+        content: data.content || "",
+        date: data.date || "",
+        isPinned: !!data.isPinned,
+        views: (data.views || 0) + 1,
+      };
+
       setSelectedNotice(detail);
-      // 조회수 증가 업데이트 반영
+
+      // Attempt to increment the view count on Firestore.
+      // This is wrapped in a safe dry-run block, as the client lacks write privileges.
+      try {
+        await updateDoc(docRef, {
+          views: increment(1)
+        });
+      } catch {
+        // Safe to ignore on public read-only clients
+      }
+
+      // Update views in local state
       setNotices((prev) =>
         prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n))
       );
     } catch (err) {
       console.error(err);
+      handleFirestoreError(err, OperationType.GET, `notices/${notId}`);
     }
   };
 

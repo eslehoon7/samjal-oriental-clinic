@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net - Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ID Validation Helper
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 2. Notices Collection Rules
+    match /notices/{noticeId} {
+      // Publicly viewable announcements
+      allow read: if true;
+      // Deny client-side modifications to ensure strict data integrity
+      allow write: if false;
+    }
+  }
+}

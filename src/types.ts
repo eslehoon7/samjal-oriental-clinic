@@ -11,10 +11,11 @@ export interface Reservation {
 }
 
 export interface Notice {
-  id: number;
+  id: string;
   title: string;
   content: string;
   date: string;
+  isPinned?: boolean;
   views: number;
 }
 
