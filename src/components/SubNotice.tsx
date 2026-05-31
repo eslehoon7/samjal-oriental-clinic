@@ -48,7 +48,7 @@ export default function SubNotice() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
           <img
-            src="/src/assets/images/herbal_medicine_1779805229983.png"
+            src="/images/herbal_medicine_1779805229983.png"
             alt="공지사항 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

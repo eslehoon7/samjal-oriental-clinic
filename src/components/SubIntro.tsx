@@ -23,7 +23,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
           <img
-            src="/src/assets/images/clinic_interior_1779805270752.png"
+            src="/images/clinic_interior_1779805270752.png"
             alt="삼잘한의원 소개 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -96,7 +96,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 </div>
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#DFD5C6] shadow-lg">
                   <img
-                    src="/src/assets/images/clinic_interior_1779805270752.png"
+                    src="/images/clinic_interior_1779805270752.png"
                     alt="진료철학 메인 이미지"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -109,7 +109,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-[#FDFBF7]/60 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-[#FDFBF7] relative">
                     <img 
-                      src="/src/assets/images/clinic_interior_1779805270752.png" 
+                      src="/images/clinic_interior_1779805270752.png" 
                       alt="수승화강 기류 환경" 
                       className="w-full h-full object-cover filter grayscale contrast-120 brightness-95 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-[20%] group-hover:contrast-110"
                       referrerPolicy="no-referrer"
@@ -132,7 +132,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-[#FDFBF7]/60 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-[#FDFBF7] relative">
                     <img 
-                      src="/src/assets/images/herbal_medicine_1779805229983.png" 
+                      src="/images/herbal_medicine_1779805229983.png" 
                       alt="위수배 안녕 한약 치료" 
                       className="w-full h-full object-cover filter grayscale contrast-120 brightness-95 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-[20%] group-hover:contrast-110"
                       referrerPolicy="no-referrer"
@@ -155,7 +155,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-[#FDFBF7]/60 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-[#FDFBF7] relative">
                     <img 
-                      src="/src/assets/images/acupuncture_treatment_1779805206489.png" 
+                      src="/images/acupuncture_treatment_1779805206489.png" 
                       alt="대관절 동기침법 침술 치료" 
                       className="w-full h-full object-cover filter grayscale contrast-120 brightness-95 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-[20%] group-hover:contrast-110"
                       referrerPolicy="no-referrer"
@@ -227,7 +227,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="lg:col-span-5 space-y-6">
                   <div className="rounded-xl overflow-hidden border border-[#DFD5C6] shadow-md">
                     <img
-                      src="/src/assets/images/acupuncture_treatment_1779805206489.png"
+                      src="/images/acupuncture_treatment_1779805206489.png"
                       alt="대관절 동기침법 치료 정경"
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
@@ -235,7 +235,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   </div>
                   <div className="rounded-xl overflow-hidden border border-[#DFD5C6] shadow-md">
                     <img
-                      src="/src/assets/images/herbal_medicine_1779805229983.png"
+                      src="/images/herbal_medicine_1779805229983.png"
                       alt="에센셜 프리미엄 한약재"
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
@@ -266,7 +266,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="bg-transparent p-0 max-w-5xl mx-auto flex flex-col md:flex-row gap-12 items-center">
                   <div className="w-full md:w-1/2 aspect-[4/3] rounded-2xl overflow-hidden bg-stone-100 border border-[#DFD5C6]/30 shrink-0 shadow-sm">
                     <img 
-                      src="/src/assets/images/herbal_medicine_1779805229983.png" 
+                      src="/images/herbal_medicine_1779805229983.png" 
                       alt="김유정 박사 팜힐 천연물 제형 연구소" 
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
@@ -409,7 +409,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     <div className="flex md:justify-end order-1 pl-12 md:pl-0 w-full">
                       <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-[#DFD5C6]/60 shadow-md">
                         <img
-                          src="/src/assets/images/clinic_interior_1779805270752.png"
+                          src="/images/clinic_interior_1779805270752.png"
                           alt="2024 파리 올림픽 대외활동"
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
@@ -465,7 +465,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     <div className="flex md:justify-start order-1 md:order-2 pl-12 md:pl-0 w-full">
                       <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-[#DFD5C6]/60 shadow-md">
                         <img
-                          src="/src/assets/images/samjal_crew_1779805249409.png"
+                          src="/images/samjal_crew_1779805249409.png"
                           alt="2020 도쿄 올림픽 주치의 활동"
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"

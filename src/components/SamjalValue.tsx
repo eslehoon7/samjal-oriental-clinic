@@ -45,7 +45,7 @@ export default function SamjalValue() {
             <div className="absolute top-0 left-0 w-full h-1.5 bg-[#C5A059]" />
             <div className="w-full max-w-[340px] aspect-square overflow-hidden rounded-xl">
               <img
-                src="/src/assets/images/samjal_characters_1779805299286.png"
+                src="/images/samjal_characters_1779805299286.png"
                 alt="삼잘한의원 캐릭터 일러스트"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"

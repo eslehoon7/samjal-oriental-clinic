@@ -28,7 +28,7 @@ export default function SubLocation() {
       doctor: {
         name: "전준영 원장",
         role: "삼잘한의원 노원점 대표원장",
-        image: "/src/assets/images/samjal_crew_1779805249409.png",
+        image: "/images/samjal_crew_1779805249409.png",
         credentials: [
           "경희대 한의대 학사",
           "경희대 한의대 임상한의학 석사",
@@ -60,7 +60,7 @@ export default function SubLocation() {
         "목요일 직장인 밤샘 케어를 위한 21시 야간진료 요법 개설",
         "한지 향이 솔솔 감도는 아늑한 오리엔탈 한방 다도실 구비"
       ],
-      image: "/src/assets/images/clinic_interior_1779805270752.png"
+      image: "/images/clinic_interior_1779805270752.png"
     },
     guri: {
       name: "삼잘한의원 구리본점 (대표원장 제정진)",
@@ -84,7 +84,7 @@ export default function SubLocation() {
       doctor: {
         name: "제정진 원장",
         role: "삼잘한의원 구리점 대표원장",
-        image: "/src/assets/images/samjal_crew_1779805249409.png",
+        image: "/images/samjal_crew_1779805249409.png",
         credentials: [
           "경희대 한의대 학사",
           "경희대 한의대 임상한의학 박사",
@@ -114,7 +114,7 @@ export default function SubLocation() {
         "구리점 주차 전용 자주식 파킹 타워 완비 (무료 2시간 제공)",
         "경희대 내과 전공 제정진 원장의 소화 진맥 약선 연구소 운영"
       ],
-      image: "/src/assets/images/samjal_crew_1779805249409.png"
+      image: "/images/samjal_crew_1779805249409.png"
     }
   };
 
@@ -128,7 +128,7 @@ export default function SubLocation() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
           <img
-            src="/src/assets/images/samjal_crew_1779805249409.png"
+            src="/images/samjal_crew_1779805249409.png"
             alt="지점안내 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -317,7 +317,7 @@ export default function SubLocation() {
               <div className="lg:col-span-5 flex flex-col items-center">
                 <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-[#DFD5C6]/10 border border-[#DFD5C6]/30">
                   <img
-                    src="/src/assets/images/samjal_crew_1779805249409.png"
+                    src="/images/samjal_crew_1779805249409.png"
                     alt="제현영 원장"
                     className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1"
                     referrerPolicy="no-referrer"

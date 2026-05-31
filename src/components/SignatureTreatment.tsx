@@ -8,7 +8,7 @@ interface SignatureTreatmentProps {
 export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: SignatureTreatmentProps) {
   const treatments = [
     {
-      image: "/src/assets/images/acupuncture_treatment_1779805206489.png",
+      image: "/images/acupuncture_treatment_1779805206489.png",
       category: "대관절 동기침법",
       title: "침놓는사진",
       desc: "심부근육의 활성을 높이는 대관절 동기침법",
@@ -17,7 +17,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
       icon: <Syringe className="w-5 h-5 text-[#C5A059]" />
     },
     {
-      image: "/src/assets/images/herbal_medicine_1779805229983.png",
+      image: "/images/herbal_medicine_1779805229983.png",
       category: "프리미엄 지상 조제",
       title: "에센셜 한약사진",
       desc: "전문가 3인의 협업으로 탄생한 프리미엄 치료제",
@@ -26,7 +26,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
       icon: <TreePine className="w-5 h-5 text-[#C5A059]" />
     },
     {
-      image: "/src/assets/images/samjal_crew_1779805249409.png",
+      image: "/images/samjal_crew_1779805249409.png",
       category: "국가대표 주치의 사단",
       title: "크루 사진",
       desc: "체계적인 연구와 진심어린 치료",

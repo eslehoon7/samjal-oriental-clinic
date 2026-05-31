@@ -12,7 +12,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
   // 생성 완료한 이미지 경로 매칭
   const slides = [
     {
-      image: "/src/assets/images/clinic_interior_1779805270752.png",
+      image: "/images/clinic_interior_1779805270752.png",
       title: "몸이 스스로 치유하는 자생력",
       subtitle: "전통 한방 명가, 삼잘한의원",
       desc: (
@@ -24,7 +24,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
       subTab: "philosophy",
     },
     {
-      image: "/src/assets/images/samjal_crew_1779805249409.png",
+      image: "/images/samjal_crew_1779805249409.png",
       title: "대한민국 국가대표 주치의 의료진",
       subtitle: "신뢰와 전문성으로 답하는 정성진료",
       desc: (
@@ -37,7 +37,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
       subTab: "doctors",
     },
     {
-      image: "/src/assets/images/acupuncture_treatment_1779805206489.png",
+      image: "/images/acupuncture_treatment_1779805206489.png",
       title: "대관절 동기침법 & 한방 골관절 집중치료",
       subtitle: "신경과 심부 고질 깊숙한 통증의 원인 교정",
       desc: (
@@ -50,7 +50,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
       subTab: "spine",
     },
     {
-      image: "/src/assets/images/herbal_medicine_1779805229983.png",
+      image: "/images/herbal_medicine_1779805229983.png",
       title: "식약처 인증 무독성 에센셜 한약제조",
       subtitle: "전문가 3인이 수공으로 조제하는 최고의 한약",
       desc: (

@@ -27,7 +27,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "수승화강 요법을 결합하여 염증 독기로 타오르는 관절 열 증세 신속 진정",
         "삼잘 보원탕을 통한 등뼈 주위 기혈 강화 및 골감소 회복"
       ],
-      image: "/src/assets/images/acupuncture_treatment_1779805206489.png"
+      image: "/images/acupuncture_treatment_1779805206489.png"
     },
     internal: {
       title: "비위(脾胃) 및 만성 장내과 클리닉",
@@ -39,19 +39,19 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "체질 맞춤 식이 가이드북 제공으로 매일의 잘먹는 패턴 완비",
         "독소 역류로 인한 두통, 만성 피로의 연대 고리 원인 차단"
       ],
-      image: "/src/assets/images/herbal_medicine_1779805229983.png"
+      image: "/images/herbal_medicine_1779805229983.png"
     },
     allergy: {
       title: "알레르기 & 면역 회복 클리닉",
       subtitle: "무너진 면역 장벽의 자생 강화",
       desc: "만성 비염, 아토피, 알레르기 두드러기, 천식 등은 체내 면역 단절이 한계치에 다다랐을 때 표출됩니다. 장 장벽의 가래 독소(담음)를 정화하여 과민 반응하지 않는 굳건한 림프 순환을 확립시킵니다.",
       benefits: [
-        "장청 해독 탕약 조제로 장 누수 증상과 혈액 내 독성 피로 물질 즉각 정화",
+        "장청 해독 탕약 조제로 장 누수 증상 and 혈액 내 독성 피로 물질 즉각 정화",
         "한방 혈위 자궁 면역 약침 자침으로 피부 및 비강 장벽의 붓기 제어",
         "수면 질 향상(잘자기) 처방을 통하여 자율신경계 밤샘 복원력 부양",
         "체질 침 치료를 통한 만성적인 한열 편중 체질성 불균형 극복"
       ],
-      image: "/src/assets/images/clinic_interior_1779805270752.png"
+      image: "/images/clinic_interior_1779805270752.png"
     },
     cancer: {
       title: "한양방 통합 암 요관리 클리닉",
@@ -63,7 +63,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "심신의 긴장감을 풀고 뇌를 안정시켜 아늑한 잠에 들도록 유도하는 삼잘 안신단",
         "임상 암 정보 빅데이터에 근거한 안전하고 교차 검증된 약재 선정 법칙"
       ],
-      image: "/src/assets/images/samjal_crew_1779805249409.png"
+      image: "/images/samjal_crew_1779805249409.png"
     },
     detox: {
       title: "전통 항노화 & 체내 해독 클리닉",
@@ -75,7 +75,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "경희대 연구진들의 체계적인 한방 기명 안티에이징 공진 보환 처방",
         "몸을 차갑고 정적으로 가두는 활성 젖산 제거 스트레칭 전수 조치"
       ],
-      image: "/src/assets/images/herbal_medicine_1779805229983.png"
+      image: "/images/herbal_medicine_1779805229983.png"
     }
   };
 
@@ -89,7 +89,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
           <img
-            src="/src/assets/images/acupuncture_treatment_1779805206489.png"
+            src="/images/acupuncture_treatment_1779805206489.png"
             alt="진료과목 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
