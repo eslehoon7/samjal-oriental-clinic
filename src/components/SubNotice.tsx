@@ -17,7 +17,11 @@ export default function SubNotice() {
       const res = await fetch("/api/notices");
       if (!res.ok) throw new Error("공지사항 목록을 불러오지 못했습니다.");
       const data = await res.json();
-      setNotices(data);
+      if (Array.isArray(data)) {
+        setNotices(data);
+      } else {
+        throw new Error("공지사항 목록 형식이 올바르지 않습니다.");
+      }
     } catch (err: any) {
       setError(err.message || "오류가 발생했습니다.");
     } finally {
@@ -99,7 +103,7 @@ export default function SubNotice() {
 
             {/* 리스트 아이템목록 */}
             <div className="divide-y divide-[#DFD5C6]/40">
-              {notices.map((n, idx) => (
+              {(notices || []).map((n, idx) => (
                 <div
                   key={n.id}
                   onClick={() => handleNoticeClick(n.id)}
