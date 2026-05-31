@@ -4,14 +4,23 @@ import { Eye, Clock, FileText, X, Sparkles } from "lucide-react";
 import { collection, getDocs, doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
 
+// In-memory cache for notices during the session
+let noticesCache: Notice[] | null = null;
+
 export default function SubNotice() {
-  const [notices, setNotices] = useState<Notice[]>([]);
+  const [notices, setNotices] = useState<Notice[]>(noticesCache || []);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!noticesCache);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchNotices();
+    if (noticesCache) {
+      // Use cached notices directly without pulling from Firestore
+      setNotices(noticesCache);
+      setLoading(false);
+    } else {
+      fetchNotices();
+    }
   }, []);
 
   const fetchNotices = async () => {
@@ -41,6 +50,7 @@ export default function SubNotice() {
       });
 
       setNotices(noticesList);
+      noticesCache = noticesList; // Save query list to memory cache
     } catch (err: any) {
       setError(err.message || "오류가 발생했습니다.");
       handleFirestoreError(err, OperationType.LIST, "notices");
@@ -77,10 +87,12 @@ export default function SubNotice() {
         // Safe to ignore on public read-only clients
       }
 
-      // Update views in local state
-      setNotices((prev) =>
-        prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n))
-      );
+      // Update views in local state and memory cache
+      setNotices((prev) => {
+        const updated = prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n));
+        noticesCache = updated;
+        return updated;
+      });
     } catch (err) {
       console.error(err);
       handleFirestoreError(err, OperationType.GET, `notices/${notId}`);
