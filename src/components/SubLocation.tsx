@@ -1,0 +1,523 @@
+import { useState } from "react";
+import { MapPin, Phone, Clock, Navigation, Sparkles } from "lucide-react";
+
+export default function SubLocation() {
+  const [activeBranch, setActiveBranch] = useState("nowon");
+
+  const branches = {
+    nowon: {
+      name: "삼잘한의원 노원점 (대표원장 전준영)",
+      address: "서울시 노원구 노해로 482, 7층 (덕영빌딩)",
+      phone: "02-6952-4067",
+      subway: "노원역 6번 출구 바로 앞 도보 1분 (신한은행 건물 7층)",
+      hours: [
+        { label: "월·화·목·금요일", val: "10:00 - 19:00" },
+        { label: "수요일", val: "10:00 - 17:00" },
+        { label: "토요일", val: "10:00 - 16:00", note: "점심시간 없이 논스톱 진료" },
+        { label: "일요일", val: "정기 휴진" },
+        { label: "점심시간", val: "13:00 - 14:00 (1시간)" }
+      ],
+      greeting: {
+        quote: "“몸의 자생력을 일깨워 건강함을 되찾아 드립니다”",
+        lines: [
+          "안녕하세요, 삼잘한의원 노원점 전준영 원장입니다.",
+          "경희대병원 전문의의 꼼꼼하고 수준높은 진료와 함께,",
+          "삼잘한의원 고유의 기술력이 담긴 치료시스템으로 근본적인 변화를 약속드립니다."
+        ]
+      },
+      doctor: {
+        name: "전준영 원장",
+        role: "삼잘한의원 노원점 대표원장",
+        image: "/src/assets/images/samjal_crew_1779805249409.png",
+        credentials: [
+          "경희대 한의대 학사",
+          "경희대 한의대 임상한의학 석사",
+          "경희대 한방병원 인턴/레지던트 과정 수료",
+          "경희대 한방병원 척추관절센터/뇌졸중센터 재직",
+          "한방재활의학과 전문의",
+          "한방비만학회 연구자문위원"
+        ],
+        research: [
+          "삼잘에센셜 처방 수석 연구원(Head Developer of formulation)",
+          "De-tox캡슐 수원단 연구개발",
+          "Anti-inflammatory formula 프라이머 오일 연구개발",
+          "관절염 솔루션: Feather-step 연구개발",
+          "알레르기 솔루션: Allergy-control 연구개발",
+          "불면증 솔루션: Goyo 연구개발",
+          "항노화 포뮬러: Cell-renewal 연구개발"
+        ],
+        papers: [
+          "만성 긴장성 두통에 대한 양측 완골과 풍지혈 전침 치료의 효과, 한방재활의학과학회지",
+          "교통사고로 인한 편타손상의 침 치료에 대한 임상연구의 국내외 동향, 한방재활의학과학회지",
+          "상지의 단일신경병증에 대한 수기치료의 국내외 동향, 한방재활의학과학회지",
+          "AGREE II 를 이용한 턱관절 장애의 국내외 기개발임상진료지침의 평가, 한방재활의학과학회지",
+          "근골격계 질환에서 도구를 이용한 수기요법의 연구동향 고찰, 한방재활의학과학회지"
+        ]
+      },
+      features: [
+        "체질맥진 자율신경계 분석 장비 완비",
+        "자궁 · 관절 정밀 침구 치료를 위한 개인 프라이빗 침 배드 운영",
+        "목요일 직장인 밤샘 케어를 위한 21시 야간진료 요법 개설",
+        "한지 향이 솔솔 감도는 아늑한 오리엔탈 한방 다도실 구비"
+      ],
+      image: "/src/assets/images/clinic_interior_1779805270752.png"
+    },
+    guri: {
+      name: "삼잘한의원 구리본점 (대표원장 제정진)",
+      address: "경기도 구리시 경춘로 186, 3층 (삼잘빌딩)",
+      phone: "031-555-3555",
+      subway: "경의중앙선 구리역 1번 출구 도보 5분 현대아울렛 사거리 중앙",
+      hours: [
+        { label: "월·수·금요일", val: "09:00 - 19:00" },
+        { label: "화요일", val: "09:00 - 13:00", note: "점심시간 없이 논스톱 진료" },
+        { label: "토요일", val: "09:00 - 15:00", note: "점심시간 없이 논스톱 진료" },
+        { label: "목·일요일", val: "정기 휴진" },
+        { label: "점심시간", val: "13:00 - 14:00 (1시간)" }
+      ],
+      greeting: {
+        quote: "“기본부터 탄탄하게, 여러분의 건강을 지키겠습니다”",
+        lines: [
+          "안녕하세요, 삼잘한의원 구리점 제정진 원장입니다.",
+          "증상이라는 결과보다 그것에 이르게 된 과정에 집중해 진료하고 있습니다."
+        ]
+      },
+      doctor: {
+        name: "제정진 원장",
+        role: "삼잘한의원 구리점 대표원장",
+        image: "/src/assets/images/samjal_crew_1779805249409.png",
+        credentials: [
+          "경희대 한의대 학사",
+          "경희대 한의대 임상한의학 박사",
+          "한체대 대학원 체육학 박사",
+          "경희대학교 한방병원 한방내과 레지던트 이수",
+          "올림픽/아시아게임 패럴림픽 국가대표팀 주치의<br>['24파리, ‘22항저우, ‘22도쿄, ‘18평창, ‘16리우]",
+          "삼잘에센셜 처방 개발 고문",
+          "전)상지대 한의대 교수",
+          "전)대한스포츠한의학회 회장"
+        ],
+        research: [
+          "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)"
+        ],
+        papers: [
+          "2015 한약의 도핑관리, 대한스포츠한의학회지",
+          "혈부축어탕이 Adjuvant유발 관절염에 미치는 영향[dissertation], 경희대 박사학위",
+          "중풍으로 인한 견비통의 초음파를 이용한 온경락요법 치료효과, 한방재활의학과학회지",
+          "골다공증 검진 방법에 대한 소고, 한방재활의학과학회지",
+          "용골, 모려, 구판, 별갑, 아교가 골다공증에 미치는 영향에 대한 문헌적 고찰, 한방재활의학과학회지",
+          "허비증에 대한 문헌적 고찰, 한방재활의학과학회지",
+          "치료용 레이저에 대한 소고, 대한한의학회지"
+        ]
+      },
+      features: [
+        "전 가마솥 한방 중탕 기기 설비의 '원내 투명 탕전 시스템'",
+        "어린이 성장 보원 진단 및 노약자 수승화강 순환 치료 베드",
+        "구리점 주차 전용 자주식 파킹 타워 완비 (무료 2시간 제공)",
+        "경희대 내과 전공 제정진 원장의 소화 진맥 약선 연구소 운영"
+      ],
+      image: "/src/assets/images/samjal_crew_1779805249409.png"
+    }
+  };
+
+  const current = branches[activeBranch as keyof typeof branches];
+
+  return (
+    <div className="bg-[#FDFBF7] min-h-screen animate-fadeIn">
+      
+      {/* 서브 메인 비주얼 배너 섹션 (Main Section) */}
+      <div className="relative w-full h-[560px] sm:h-[720px] bg-[#2A2826] overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
+          <img
+            src="/src/assets/images/samjal_crew_1779805249409.png"
+            alt="지점안내 배경"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+
+        <div className="relative z-20 text-center space-y-3 px-4 animate-fadeIn">
+          <span className="text-[#C5A059] text-xs sm:text-sm font-serif tracking-widest uppercase font-bold flex items-center justify-center gap-1.5">
+            Branch Locations
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white font-extrabold tracking-tight">
+            지점안내 & 오시는길
+          </h1>
+          <p className="text-[#DFD5C6] font-serif text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
+            가장 가까운 곳에서 전하는 국가대표급 전임 원장단<br /> 정성의 명품 한방 의료 서비스를 약속드릡니다.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        {/* 노원점 vs 구리점 대형 트리거 디자인 */}
+        <div className="flex justify-center gap-4 mb-10 max-w-md mx-auto">
+          <button
+            onClick={() => setActiveBranch("nowon")}
+            className={`flex-1 py-4 text-center font-serif text-base tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
+              activeBranch === "nowon"
+                ? "bg-[#2A2826] border-[#2A2826] text-[#DFD5C6] font-bold shadow-md"
+                : "bg-white border-[#DFD5C6] text-[#2A2826]/80 hover:bg-[#FDFBF7]"
+            }`}
+          >
+            노원점 (전준영 대표원장)
+          </button>
+          <button
+            onClick={() => setActiveBranch("guri")}
+            className={`flex-1 py-4 text-center font-serif text-base tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
+              activeBranch === "guri"
+                ? "bg-[#2A2826] border-[#2A2826] text-[#DFD5C6] font-bold shadow-md"
+                : "bg-white border-[#DFD5C6] text-[#2A2826]/80 hover:bg-[#FDFBF7]"
+            }`}
+          >
+            구리점 (제정진 대표원장)
+          </button>
+        </div>
+
+        {/* 지점 원장 대표의 따뜻한 인사말 & 학술 프로필 통합 섹션 (Section 1) */}
+        <div className="mb-12 relative overflow-hidden space-y-10 py-6">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#C5A059]/5 rounded-bl-full pointer-events-none" />
+          <div className="absolute top-0 left-0 w-28 h-28 bg-[#C5A059]/3 rounded-br-full pointer-events-none" />
+
+          {/* 인트로: 중앙 정렬된 한글 세로 데코 / 가로 인사말 */}
+          <div className="flex flex-col items-center gap-5 text-center relative z-10 max-w-3xl mx-auto">
+            <h3 className="text-base sm:text-lg font-serif text-[#C5A059] font-extrabold leading-relaxed text-center">
+              {current.greeting.quote}
+            </h3>
+            <div className="h-[1px] w-12 bg-[#DFD5C6]/80 mx-auto" />
+            <div className="space-y-2.5 text-center">
+              {current.greeting.lines.map((line: string, index: number) => (
+                <p key={index} className="text-xs sm:text-sm font-serif text-[#5C6351] leading-relaxed break-keep">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* 연구 분야 및 원장 약력 2단 그리드 (사용자 시안 정밀 매칭) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 pt-4 relative z-10 max-w-5xl mx-auto w-full">
+            {/* 좌측 영역: 원장 프로필 이미지 (lg:col-span-5) */}
+            <div className="lg:col-span-5 flex flex-col items-center">
+              <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-[#DFD5C6]/10 border border-[#DFD5C6]/30">
+                <img
+                  src={current.doctor.image}
+                  alt={current.doctor.name}
+                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            </div>
+
+            {/* 우측 영역: 약력 및 연구 분야 정보 통합 (lg:col-span-7) */}
+            <div className="lg:col-span-7 space-y-8 flex flex-col justify-start text-left">
+              {/* [우측 상단] 대표원장 이름, 직함 및 상세 약력 */}
+              <div className="space-y-4 lg:translate-x-3 translate-x-1">
+                <div className="flex items-center gap-3.5">
+                  <h4 className="text-xl sm:text-2xl font-serif font-extrabold text-[#2A2826] tracking-wide">
+                    {current.doctor.name}
+                  </h4>
+                  <div className="h-[1px] w-8 bg-[#C5A059]/50" />
+                  <p className="text-xs sm:text-sm font-serif text-[#C5A059] font-bold tracking-wider">
+                    {current.doctor.role}
+                  </p>
+                </div>
+                
+                {/* 한의대 약력 list */}
+                <ul className="space-y-2.5 text-sm sm:text-[15px] font-serif text-[#5C6351] leading-relaxed font-medium">
+                  {current.doctor.credentials.map((cred: string, idx: number) => {
+                    if (cred.includes("<br>")) {
+                      return (
+                        <li key={idx} className="break-keep">
+                          {cred.split("<br>").map((line, lidx) => (
+                            <span key={lidx}>
+                              {line}
+                              {lidx < cred.split("<br>").length - 1 && <br />}
+                            </span>
+                          ))}
+                        </li>
+                      );
+                    }
+                    return (
+                      <li key={idx} className="break-keep">{cred}</li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {/* 구분선 */}
+              <div className="h-[1px] bg-[#DFD5C6]/40 w-full" />
+
+              {/* [우측 하단] 연구개발 분야 및 논문 리스트 */}
+              <div className="space-y-6">
+                {/* 연구개발 분야 */}
+                <div className="space-y-3.5 lg:translate-x-3 translate-x-1">
+                  {current.doctor.research.map((res: string, idx: number) => {
+                    if (res.includes("(") && (res.includes("formulation") || res.includes("Advisor") || res.includes("Research"))) {
+                      const openParenIdx = res.indexOf("(");
+                      const mainPart = res.slice(0, openParenIdx).trim();
+                      const headPart = res.slice(openParenIdx).trim();
+                      return (
+                        <div key={idx} className="text-sm sm:text-base md:text-[17px] font-serif text-[#2A2826] leading-relaxed pb-3 border-b border-[#DFD5C6]/40 mb-3 flex flex-wrap items-baseline gap-1">
+                          <strong className="text-[#A67C52] font-extrabold text-base sm:text-lg md:text-xl">
+                            {mainPart}
+                          </strong>
+                          <span className="text-xs sm:text-sm text-[#5C6351] font-sans font-medium">
+                            {headPart}
+                          </span>
+                        </div>
+                      );
+                    }
+
+                    if (res.includes(":")) {
+                      const [label, val] = res.split(":");
+                      return (
+                        <div key={idx} className="text-sm sm:text-base md:text-[17px] font-serif text-[#2A2826] leading-relaxed flex items-start gap-2">
+                          <span className="text-[#A67C52] font-bold shrink-0">{label.trim()}:</span>
+                          <span className="text-[#2A2826]/90 font-medium">{val.trim()}</span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={idx} className="text-sm sm:text-base md:text-[17px] font-serif text-[#2A2826] leading-relaxed font-semibold flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/75 shrink-0" />
+                        <span>{res}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 논문 리스트 */}
+                {current.doctor.papers && current.doctor.papers.length > 0 && (
+                  <div className="flex gap-4 items-stretch pt-4 lg:translate-x-3 translate-x-1">
+                    <div className="w-[1.5px] bg-[#C5A059]/50 shrink-0 self-stretch my-1" />
+                    <div className="space-y-2">
+                      <span className="text-xs sm:text-sm font-serif font-bold text-[#2A2826] block tracking-wide">
+                        논문
+                      </span>
+                      <ul className="space-y-2.5 text-xs font-serif text-[#5C6351] leading-relaxed break-keep">
+                        {current.doctor.papers.map((paper: string, idx: number) => (
+                          <li key={idx} className="relative pl-3.5">
+                            <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-[#C5A059]/80" />
+                            {paper}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 구리점일 경우 선택한 프로필 div를 밑에 하나 더 복사 */}
+          {activeBranch === "guri" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 pt-12 relative z-10 border-t border-[#DFD5C6]/40 mt-12 animate-fadeIn max-w-5xl mx-auto w-full">
+              {/* 좌측 영역: 원장 프로필 이미지 (lg:col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col items-center">
+                <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-[#DFD5C6]/10 border border-[#DFD5C6]/30">
+                  <img
+                    src="/src/assets/images/samjal_crew_1779805249409.png"
+                    alt="제현영 원장"
+                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+
+              {/* 우측 영역: 약력 및 연구 분야 정보 통합 (lg:col-span-7) */}
+              <div className="lg:col-span-7 space-y-8 flex flex-col justify-start text-left">
+                {/* [우측 상단] 대표원장 이름, 직함 및 상세 약력 */}
+                <div className="space-y-4 lg:translate-x-3 translate-x-1">
+                  <div className="flex items-center gap-3.5">
+                    <h4 className="text-xl sm:text-2xl font-serif font-extrabold text-[#2A2826] tracking-wide">
+                      제현영 원장
+                    </h4>
+                    <div className="h-[1px] w-8 bg-[#C5A059]/50" />
+                    <p className="text-xs sm:text-sm font-serif text-[#C5A059] font-bold tracking-wider">
+                      삼잘한의원 구리점 원장
+                    </p>
+                  </div>
+                  
+                  {/* 한의대 약력 list */}
+                  <ul className="space-y-2.5 text-sm sm:text-[15px] font-serif text-[#5C6351] leading-relaxed font-medium">
+                    <li className="break-keep">상지대 한의대 졸업</li>
+                    <li className="break-keep">체육학 석사(한체대 대학원)</li>
+                    <li className="break-keep">동수원 한방병원 인턴 과정 수료(일반수련 수료의)</li>
+                    <li className="break-keep">동수원 한방병원 응급진료실 재직</li>
+                    <li className="break-keep">전)한의약진흥원 연구원</li>
+                  </ul>
+                </div>
+
+                {/* 구분선 */}
+                <div className="h-[1px] bg-[#DFD5C6]/40 w-full" />
+
+                {/* [우측 하단] 중점진료영역 및 논문 리스트 */}
+                <div className="space-y-6">
+                  {/* 중점진료영역 */}
+                  <div className="space-y-3.5 lg:translate-x-3 translate-x-1">
+                    <div className="text-sm sm:text-base md:text-[17px] font-serif text-[#2A2826] leading-relaxed pb-3 border-b border-[#DFD5C6]/40 mb-3 flex flex-wrap items-baseline gap-1">
+                      <strong className="text-[#A67C52] font-extrabold text-base sm:text-lg md:text-xl">
+                        중점진료영역
+                      </strong>
+                    </div>
+                    <div className="space-y-2.5">
+                      {[
+                        "여성질환",
+                        "다이어트",
+                        "척추/관절/통증 질환",
+                        "외상성 질환(교통사고, 스포츠)",
+                        "Foreigner Clinic"
+                      ].map((item, idx) => (
+                        <div key={idx} className="text-sm sm:text-base md:text-[17px] font-serif text-[#2A2826] leading-relaxed font-semibold flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/75 shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 논문 리스트 */}
+                  <div className="flex gap-4 items-stretch pt-4 border-t border-[#DFD5C6]/30 lg:translate-x-3 translate-x-1">
+                    <div className="w-[1.5px] bg-[#C5A059]/50 shrink-0 self-stretch my-1" />
+                    <div className="space-y-2">
+                      <span className="text-xs sm:text-sm font-serif font-bold text-[#2A2826] block tracking-wide">
+                        논문
+                      </span>
+                      <ul className="space-y-2.5 text-xs font-serif text-[#5C6351] leading-relaxed break-keep">
+                        <li className="relative pl-3.5">
+                          <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-[#C5A059]/80" />
+                          코어근육에 적용한 동작침법이 남자 대학 골프선수의 관절 가동성, 근 파워 및 드라이버 수행력에 미치는 급성효과, 2024
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 안내 섹션 헤더 가이드 */}
+        <div className="text-center pt-6 pb-14">
+          <h3 className="text-2xl sm:text-3xl font-serif font-extrabold text-[#2A2826] tracking-wide">
+            오시는 길
+          </h3>
+        </div>
+
+        {/* 상세 레이아웃 그리드 (다 다음섹션에 배치) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+          
+          {/* 지점 상세 특장점 및 운영시간 */}
+          <div className="lg:col-span-6 space-y-8 text-left">
+            <div className="space-y-2">
+              <span className="text-xs font-serif text-[#C5A059] tracking-widest uppercase block font-semibold">
+                branch information
+              </span>
+              <h3 className="text-xl sm:text-2xl font-serif text-[#2A2826] font-bold">
+                {current.name}
+              </h3>
+            </div>
+            
+            <div className="space-y-4 border-t border-b border-[#DFD5C6]/40 py-6">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-serif font-bold text-[#2A2826]">주소 및 오시는길</h4>
+                  <p className="text-xs sm:text-sm font-serif text-[#2A2826]/85 mt-0.5">{current.address}</p>
+                  <p className="text-xs font-serif text-[#5C6351] mt-1 italic">{current.subway}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-serif font-bold text-[#2A2826]">진료 안내 전화</h4>
+                  <p className="text-sm sm:text-base font-serif text-stone-900 mt-0.5 font-bold tracking-widest">
+                    {current.phone}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 정밀 시간표 */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-serif font-bold text-[#2A2826] flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#C5A059]" />
+                진료 시간표
+              </h4>
+              <div className="bg-[#FDFBF7] border border-[#DFD5C6]/40 rounded-xl p-4 divide-y divide-[#DFD5C6]/30">
+                {current.hours.map((hr: any, idx: number) => (
+                  <div key={idx} className="flex justify-between py-3 text-xs sm:text-sm font-serif text-[#2A2826]/85 items-center">
+                    <span className="font-semibold text-[#2A2826]">{hr.label}</span>
+                    <div className="text-right flex flex-col items-end justify-center">
+                      <span className="text-[#5C6351]">{hr.val}</span>
+                      {hr.note ? (
+                        <span className="text-[10px] text-[#C5A059] mt-0.5 font-sans font-medium">
+                          ({hr.note})
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-transparent select-none mt-0.5 font-sans font-medium">
+                          &nbsp;
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 지점 사진 및 가상 약도 기와 타일 디자인 */}
+          <div className="lg:col-span-6 flex flex-col justify-between gap-6">
+            <div className="aspect-[16/10] rounded-xl overflow-hidden border border-[#DFD5C6] shadow-md relative">
+              <img
+                src={current.image}
+                alt={current.name}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-stone-900/10 hover:bg-transparent transition-all" />
+            </div>
+
+            {/* 지점 특성 칩 그리드 */}
+            <div className="bg-[#FDFBF7]/80 border border-[#DFD5C6]/50 rounded-xl p-6 text-left space-y-3">
+              <h4 className="text-xs sm:text-sm font-serif font-bold text-[#C5A059] uppercase tracking-widest">
+                지점 진료 특장점
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-serif text-[#2A2826]/85">
+                {current.features.map((ft, index) => (
+                  <div key={index} className="flex items-center gap-2 border-b border-[#DFD5C6]/30 pb-2">
+                    <span className="text-[#C5A059] font-bold">✓</span>
+                    <span className="leading-tight">{ft}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 가상 주차 및 예약 지원 */}
+            <div className="flex gap-4">
+              <a
+                href={`tel:${current.phone}`}
+                className="flex-1 text-center py-3.5 bg-[#C5A059] hover:bg-[#A67C52] transition-all text-[#2A2826] hover:text-white rounded-lg text-sm font-serif font-semibold tracking-wider flex items-center justify-center cursor-pointer"
+              >
+                지점 상담전화연결
+              </a>
+              <button
+                onClick={() => {
+                  const mapQuery = encodeURIComponent(current.address);
+                  window.open(`https://map.kakao.com/?q=${mapQuery}`, "_blank");
+                }}
+                className="flex-1 text-center py-3.5 bg-[#2A2826] hover:bg-[#C5A059] text-[#DFD5C6] hover:text-[#2A2826] border border-[#2A2826] rounded-lg text-sm font-serif tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Navigation className="w-4 h-4" />
+                카카오맵 길찾기
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-warm-bg: #FDFBF7;
+  --color-ink: #2A2826;
+  --color-accent-gold: #C5A059;
+  --color-accent-moss: #5C6351;
+  --color-accent-clay: #A67C52;
+  
+  --font-serif: "Noto Serif KR", Georgia, "Playfair Display", serif;
+  --font-sans: "Noto Sans KR", Arial, sans-serif;
+}
+
+body {
+  background-color: var(--color-warm-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Custom soft animation classes matching Recipe 6 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

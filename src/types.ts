@@ -1,0 +1,33 @@
+export interface Reservation {
+  id?: string;
+  name: string;
+  phone: string;
+  branch: string;
+  subject: string;
+  date: string;
+  time: string;
+  memo: string;
+  createdAt?: string;
+}
+
+export interface Notice {
+  id: number;
+  title: string;
+  content: string;
+  date: string;
+  views: number;
+}
+
+export interface DiagnoseRequest {
+  sleep: string;
+  eat: string;
+  poop: string;
+  age: string;
+  gender: string;
+  symptoms: string;
+}
+
+export interface DiagnoseResponse {
+  analysis: string;
+  isDemo?: boolean;
+}
