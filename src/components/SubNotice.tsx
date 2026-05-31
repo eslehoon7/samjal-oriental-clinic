@@ -59,44 +59,31 @@ export default function SubNotice() {
     }
   };
 
-  const handleNoticeClick = async (notId: string) => {
-    try {
-      const docRef = doc(db, "notices", notId);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) throw new Error("상세 내용을 가져오지 못했습니다.");
-      
-      const data = docSnap.data();
-      const detail: Notice = {
-        id: docSnap.id,
-        title: data.title || "",
-        content: data.content || "",
-        date: data.date || "",
-        isPinned: !!data.isPinned,
-        views: (data.views || 0) + 1,
-      };
+  const handleNoticeClick = (notId: string) => {
+    const cached = notices.find((n) => n.id === notId);
+    if (!cached) return;
 
-      setSelectedNotice(detail);
+    // Instantly display the notice details with locally incremented view count
+    const detail: Notice = {
+      ...cached,
+      views: cached.views + 1,
+    };
+    setSelectedNotice(detail);
 
-      // Attempt to increment the view count on Firestore.
-      // This is wrapped in a safe dry-run block, as the client lacks write privileges.
-      try {
-        await updateDoc(docRef, {
-          views: increment(1)
-        });
-      } catch {
-        // Safe to ignore on public read-only clients
-      }
+    // Promptly update the local state and in-memory list cache
+    setNotices((prev) => {
+      const updated = prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n));
+      noticesCache = updated;
+      return updated;
+    });
 
-      // Update views in local state and memory cache
-      setNotices((prev) => {
-        const updated = prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n));
-        noticesCache = updated;
-        return updated;
-      });
-    } catch (err) {
-      console.error(err);
-      handleFirestoreError(err, OperationType.GET, `notices/${notId}`);
-    }
+    // Fire view count increment asynchronously in the background without blocking the UI
+    const docRef = doc(db, "notices", notId);
+    updateDoc(docRef, {
+      views: increment(1)
+    }).catch(() => {
+      // Safe to ignore on public read-only clients (firestore rules deny write)
+    });
   };
 
   return (
