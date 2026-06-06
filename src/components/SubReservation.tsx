@@ -29,6 +29,51 @@ export default function SubReservation() {
   const [diagLoading, setDiagLoading] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
 
+  // 3. 자가진단 기록 및 원장 소견 조회 상태
+  const [showLookup, setShowLookup] = useState(false);
+  const [lookupForm, setLookupForm] = useState({
+    age: "40대",
+    gender: "여성",
+    idSlice: ""
+  });
+  const [lookupResult, setLookupResult] = useState<any | null>(null);
+  const [lookupError, setLookupError] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLookupError("");
+    setLookupResult(null);
+    setLookupLoading(true);
+
+    try {
+      const response = await fetch("/api/diagnoses");
+      if (response.ok) {
+        const list = await response.json();
+        // 가장 최근 진단 내역을 찾기 위함
+        const found = list.find((item: any) => {
+          const matchesAge = item.age === lookupForm.age;
+          const matchesGender = item.gender === lookupForm.gender;
+          const matchesId = lookupForm.idSlice ? item.id.endsWith(lookupForm.idSlice) : true;
+          return matchesAge && matchesGender && matchesId;
+        });
+
+        if (found) {
+          setLookupResult(found);
+        } else {
+          setLookupError("입력하신 연령대, 성별 및 기록번호(고유주소)와 매칭되는 진단서를 찾을 수 없습니다. 원장실 등록 여부를 확인해 주십시오.");
+        }
+      } else {
+        setLookupError("진단 보관함 데이터베이스 동기화에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      setLookupError("원내 전산실 서버 수신 중 오류가 발생했습니다.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   // 예약 신청 핸들러
   const handleReservation = async (e: FormEvent) => {
     e.preventDefault();
@@ -431,22 +476,146 @@ export default function SubReservation() {
             {/* AI 정밀 보고서 영역 */}
             {diagResult && (
               <div className="mt-6 border border-[#C5A059]/50 rounded-xl overflow-hidden max-h-[350px] overflow-y-auto bg-[#FDFBF7] text-[#2A2826] p-6 shadow-md animate-scaleUp">
-                <div className="flex justify-between items-center pb-3 border-b border-[#DFD5C6]/60 mb-4 sticky top-0 bg-[#FDFBF7] z-10">
-                  <span className="text-[11px] font-serif text-[#C5A059] font-bold tracking-wider flex items-center gap-1">
+                <div className="flex justify-between items-center pb-3 border-b border-[#DFD5C6]/60 mb-4 sticky top-0 bg-[#FDFBF7] z-10 font-sans">
+                  <span className="text-[11px] text-[#C5A059] font-bold tracking-wider flex items-center gap-1">
                     <Gift className="w-3.5 h-3.5" />
                     삼잘한의원 비법 전수 진단서
                   </span>
-                  {isDemo && (
-                    <span className="px-1.5 py-0.5 bg-[#C5A059]/15 border border-[#C5A059]/30 text-[9px] font-serif text-[#C5A059] rounded font-bold">
+                  {isDemo ? (
+                    <span className="px-1.5 py-0.5 bg-[#C5A059]/15 border border-[#C5A059]/30 text-[9px] text-[#C5A059] rounded font-bold">
                       Demo Mode
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 bg-emerald-50 border border-emerald-100 text-[9px] text-emerald-600 rounded font-bold">
+                      1차 간이 AI 분석완료
                     </span>
                   )}
                 </div>
                 <div className="text-left font-serif space-y-4">
                   {renderParsedMarkdown(diagResult)}
+                  <p className="text-[10px] text-slate-400 font-sans leading-relaxed border-t border-slate-100 pt-2.5">
+                    ※ 원장님이 관리자센터 전산실에서 진술기록을 검토하고 처방/소견 문서를 기입하면 아래의 실시간 조회 창을 통해 통합 합성된 최종 의료 가이드가 자동으로 귀하에게 전속 서비스됩니다.
+                  </p>
                 </div>
               </div>
             )}
+
+            {/* 자가진단 기록 및 원장 소견 통합 조회 도구 (고객용) */}
+            <div className="mt-4 pt-4 border-t border-[#DFD5C6]/20 font-sans">
+              <button
+                type="button"
+                onClick={() => setShowLookup(!showLookup)}
+                className="w-full text-center py-2.5 border border-[#C5A059]/40 hover:bg-white/5 text-[#C5A059] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>{showLookup ? "▲ 이전 자가진단 소견 조회창 접기" : "▼ 나의 자가진단 종합 기록 & 원장 처방 조회"}</span>
+              </button>
+
+              {showLookup && (
+                <div className="mt-4 p-5 bg-white/5 border border-[#DFD5C6]/25 rounded-xl text-left space-y-4 animate-slideDown">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-[#C5A059] uppercase tracking-widest font-bold block">Consolidated Health Report Lookup</span>
+                    <h4 className="text-sm text-white font-bold">자가진단 및 주치의 종합 대응서 검색</h4>
+                    <p className="text-[10.5px] text-[#A89A8D] leading-normal">
+                      자가진단을 작성하셨던 연령대, 성별을 토대로 원장단이 가미해주신 최종 조치 소견 문서를 실시간 합성하여 답변합니다.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleLookup} className="space-y-3 font-sans text-xs">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] text-[#C5A059] font-bold mb-1">진단 당시 연령군</label>
+                        <select
+                          value={lookupForm.age}
+                          onChange={(e) => setLookupForm({ ...lookupForm, age: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-[#2A2826] border border-[#DFD5C6]/30 rounded-lg text-white"
+                        >
+                          <option value="20대">20대</option>
+                          <option value="30대">30대</option>
+                          <option value="40대">40대</option>
+                          <option value="50대">50대</option>
+                          <option value="60대 이상">60대 이상</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-[#C5A059] font-bold mb-1">성별</label>
+                        <select
+                          value={lookupForm.gender}
+                          onChange={(e) => setLookupForm({ ...lookupForm, gender: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-[#2A2826] border border-[#DFD5C6]/30 rounded-lg text-white"
+                        >
+                          <option value="여성">여성</option>
+                          <option value="남성">남성</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-[#C5A059] font-bold mb-1">기록번호 끝 6자리 (보안 확인코드 - 생략가능)</label>
+                      <input
+                        type="text"
+                        placeholder="공란으로 기입 시 가장 최근 진단을 우선 매칭합니다."
+                        value={lookupForm.idSlice}
+                        onChange={(e) => setLookupForm({ ...lookupForm, idSlice: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#2A2826] border border-[#DFD5C6]/30 rounded-lg text-white focus:outline-none focus:border-[#C5A059] text-xs"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={lookupLoading}
+                      className="w-full py-2.5 bg-[#C5A059] hover:bg-[#A67C52] text-[#2A2826] hover:text-white rounded-lg text-xs font-bold transition-all text-center cursor-pointer"
+                    >
+                      {lookupLoading ? "보안 데이터 동기화 중..." : "나의 종합 진단서 및 주치의 처방 실시간 확인"}
+                    </button>
+                  </form>
+
+                  {lookupError && (
+                    <p className="text-rose-400 text-[10.5px] leading-relaxed font-semibold text-center">
+                      ⚠ {lookupError}
+                    </p>
+                  )}
+
+                  {lookupResult && (
+                    <div className="mt-4 p-4.5 bg-amber-50/5 border border-[#C5A059]/40 rounded-xl space-y-3.5 text-left">
+                      <div className="flex items-center justify-between pb-2 border-b border-[#DFD5C6]/20">
+                        <span className="text-xs font-serif text-white font-bold flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
+                          실시간 임상 기록 및 처방 합성결과 ({lookupResult.id.slice(-6)})
+                        </span>
+                        <span className="text-[10px] font-mono text-gray-400">
+                          {new Date(lookupResult.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 text-xs leading-relaxed font-serif">
+                        <div>
+                          <span className="text-[10px] text-[#C5A059] block font-sans font-bold mb-0.5">• 환우 기재 증상</span>
+                          <p className="text-slate-300 italic pl-1 font-light font-serif">"{lookupResult.symptoms}"</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#C5A059] block font-sans font-bold mb-0.5">• 주치의 진술 및 원장단 처방 (통합 소견)</span>
+                          {lookupResult.doctorNotes ? (
+                            <p className="bg-[#C5A059]/10 text-white p-3 rounded-lg border border-[#C5A059]/30 font-serif leading-relaxed text-xs">
+                              {lookupResult.doctorNotes}
+                            </p>
+                          ) : (
+                            <p className="text-amber-500/80 italic p-3 bg-white/5 rounded-lg border border-white/5 leading-relaxed text-[11px] font-serif">
+                              원장실에서 문서를 보완 중입니다. 진단이 완료되는 대로 본 조회 페이지에서 완벽한 명세서가 전속 처리됩니다.
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#C5A059] block font-sans font-bold mb-0.5">• 공전 인공지능 보조 해설서</span>
+                          <div className="text-slate-300 pl-1 max-h-[140px] overflow-y-auto text-[11.5px] leading-relaxed bg-black/10 p-2.5 rounded-lg border border-white/5 font-serif">
+                            {renderParsedMarkdown(lookupResult.analysis)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
           </div>
 

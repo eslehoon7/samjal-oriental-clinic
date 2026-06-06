@@ -2,14 +2,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-warm-bg: #FDFBF7;
-  --color-ink: #2A2826;
-  --color-accent-gold: #C5A059;
-  --color-accent-moss: #5C6351;
-  --color-accent-clay: #A67C52;
+  --color-warm-bg: #F8FAFC;
+  --color-ink: #0F172A;
+  --color-accent-gold: #0F2C59;
+  --color-accent-moss: #64748B;
+  --color-accent-clay: #1E293B;
   
-  --font-serif: "Noto Serif KR", Georgia, "Playfair Display", serif;
-  --font-sans: "Noto Sans KR", Arial, sans-serif;
+  --font-serif: "Noto Sans KR", "Inter", sans-serif;
+  --font-sans: "Noto Sans KR", "Inter", sans-serif;
 }
 
 body {

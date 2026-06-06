@@ -12,7 +12,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
   // 생성 완료한 이미지 경로 매칭
   const slides = [
     {
-      image: "/images/clinic_interior_1779805270752.png",
+      image: "/images/clinic_interior_modern_1780495390125.png",
       title: "몸이 스스로 치유하는 자생력",
       subtitle: "전통 한방 명가, 삼잘한의원",
       desc: (
@@ -24,7 +24,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
       subTab: "philosophy",
     },
     {
-      image: "/images/samjal_crew_1779805249409.png",
+      image: "/images/samjal_crew_professional_1780495405627.png",
       title: "대한민국 국가대표 주치의 의료진",
       subtitle: "신뢰와 전문성으로 답하는 정성진료",
       desc: (
@@ -34,10 +34,10 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
         </>
       ),
       linkTab: "intro",
-      subTab: "doctors",
+      subTab: "treatments",
     },
     {
-      image: "/images/acupuncture_treatment_1779805206489.png",
+      image: "/images/professional_clean_acupuncture_1780497559621.png",
       title: "대관절 동기침법 & 한방 골관절 집중치료",
       subtitle: "신경과 심부 고질 깊숙한 통증의 원인 교정",
       desc: (
@@ -46,11 +46,11 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
           그 현장에서 바로 회복시키는 특수 침법입니다.
         </>
       ),
-      linkTab: "subject",
-      subTab: "spine",
+      linkTab: "intro",
+      subTab: "activities",
     },
     {
-      image: "/images/herbal_medicine_1779805229983.png",
+      image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
       title: "식약처 인증 무독성 에센셜 한약제조",
       subtitle: "전문가 3인이 수공으로 조제하는 최고의 한약",
       desc: (
@@ -59,8 +59,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
           장과 자궁, 위를 안전하게 회복시킵니다.
         </>
       ),
-      linkTab: "intro",
-      subTab: "treatments",
+      linkTab: "subject",
     },
   ];
 
@@ -85,34 +84,14 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
     if (setIntroSubTab && slide.subTab) {
       setIntroSubTab(slide.subTab);
     }
-    window.scrollTo({ top: 500, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const tabs = [
-    { id: "philosophy", label: "진료철학", targetTab: "intro" },
-    { id: "treatments", label: "고유치료법", targetTab: "intro" },
-    { id: "doctors", label: "의료진소개", targetTab: "intro" },
-    { id: "activities", label: "대외활동", targetTab: "intro" },
-  ];
-
-  const handleTabClick = (tab: typeof tabs[0]) => {
-    setActiveTab(tab.targetTab);
-    if (setIntroSubTab) {
-      setIntroSubTab(tab.id);
-    }
-    // 부드럽게 스크롤 내리기
-    setTimeout(() => {
-      const element = document.getElementById("intro-content-view");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 100);
-  };
 
   return (
-    <div className="relative bg-[#FDFBF7]">
+    <div className="relative bg-[#F8FAFC]">
       {/* 슬라이더 영역 */}
-      <div className="relative h-screen min-h-[600px] w-full overflow-hidden border-b border-[#DFD5C6]">
+      <div className="relative h-screen min-h-[600px] w-full overflow-hidden border-b border-slate-200">
         {slides.map((slide, idx) => (
           <div
             key={idx}
@@ -120,12 +99,16 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
               idx === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
             }`}
           >
-            {/* 배경 이미지 비칠 때 겹치는 다크/골드 그라데이션 필터 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
+            {/* 배경 이미지 비칠 때 겹치는 다크/네이비 그라데이션 필터 (위생적인 분위기) */}
+            <div 
+              onClick={() => handleSlideClick(slide)}
+              className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/40 mix-blend-multiply z-10 cursor-pointer" 
+            />
             <img
+              onClick={() => handleSlideClick(slide)}
               src={slide.image}
               alt={slide.title}
-              className="w-full h-full object-cover transition-transform duration-[4000ms] ease-out"
+              className="w-full h-full object-cover transition-transform duration-[4000ms] ease-out cursor-pointer"
               style={{ transform: idx === currentIndex ? "scale(1.05)" : "scale(1)" }}
               referrerPolicy="no-referrer"
             />
@@ -133,19 +116,19 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
             <div className="absolute inset-0 z-20 flex items-center">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div className="max-w-2xl space-y-4 sm:space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 bg-[#C5A059]/20 border border-[#C5A059]/55 rounded-full text-[#DFD5C6] text-xs">
-                    <span className="font-serif tracking-widest">{slide.subtitle}</span>
+                  <div className="inline-flex items-center px-3 py-1 bg-[#0F2C59]/30 border border-[#0F2C59]/60 rounded-full text-slate-100 text-xs">
+                    <span className="font-sans tracking-widest">{slide.subtitle}</span>
                   </div>
-                  <h2 className="text-xl sm:text-3xl md:text-[44px] lg:text-5xl font-serif text-white font-bold tracking-tight drop-shadow-md whitespace-nowrap">
+                  <h2 className="text-xl sm:text-3xl md:text-[44px] lg:text-5xl font-sans text-white font-bold tracking-tight drop-shadow-md whitespace-nowrap">
                     {slide.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-[#DFD5C6]/90 font-serif leading-relaxed font-light drop-shadow">
+                  <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed font-light drop-shadow">
                     {slide.desc}
                   </p>
                   <div className="pt-4 flex flex-wrap gap-4">
                     <button
                       onClick={() => handleSlideClick(slide)}
-                      className="px-6 py-3 bg-[#C5A059] hover:bg-[#A67C52] text-[#2A2826] hover:text-white transition-all duration-300 rounded-lg text-sm font-serif font-semibold tracking-wider shadow-lg flex items-center gap-1.5 cursor-pointer"
+                      className="px-6 py-3 bg-[#0F2C59] hover:bg-[#1E40AF] text-white transition-all duration-300 rounded-lg text-sm font-sans font-semibold tracking-wider shadow-lg flex items-center gap-1.5 cursor-pointer"
                     >
                       자세히 알아보기
                     </button>
@@ -154,7 +137,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
                         setActiveTab("reservation");
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-[#DFD5C6] border border-[#DFD5C6]/40 hover:border-[#DFD5C6] transition-all rounded-lg text-sm font-serif tracking-wider"
+                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white border border-slate-300/40 hover:border-white transition-all rounded-lg text-sm font-sans tracking-wider"
                     >
                       온라인 예약 / AI 분석
                     </button>
@@ -188,29 +171,13 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? "bg-[#C5A059] w-6" : "bg-white/40 hover:bg-white"
+                idx === currentIndex ? "bg-[#0F2C59] w-6" : "bg-white/40 hover:bg-white"
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* 슬라이더 직하부 가로 긴 탭 레이아웃 (사용자 시안 정밀 매치) */}
-      <div className="bg-[#2A2826] border-b border-[#A67C52]/45 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-4 h-16 divide-x divide-[#A67C52]/20">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab)}
-                className="flex items-center justify-center text-[13px] sm:text-[15px] font-serif tracking-wider text-[#DFD5C6] hover:text-[#C5A059] hover:bg-[#2A2826]/30 transition-all duration-300 cursor-pointer"
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

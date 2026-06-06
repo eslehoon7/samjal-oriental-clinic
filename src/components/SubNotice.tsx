@@ -1,59 +1,77 @@
 import { useState, useEffect } from "react";
 import { Notice } from "../types";
-import { Eye, Clock, FileText, X, Sparkles } from "lucide-react";
-import { collection, getDocs, doc, getDoc, updateDoc, increment } from "firebase/firestore";
-import { db, handleFirestoreError, OperationType } from "../firebase";
+import { Eye, Clock, FileText, X } from "lucide-react";
 
-// In-memory cache for notices during the session
+// In-memory cache for ultra-fast session speed
 let noticesCache: Notice[] | null = null;
 
 export default function SubNotice() {
-  const [notices, setNotices] = useState<Notice[]>(noticesCache || []);
+  const [notices, setNotices] = useState<Notice[]>(() => {
+    if (noticesCache) return noticesCache;
+    try {
+      const persisted = sessionStorage.getItem("samjal_notices_cache");
+      if (persisted) {
+        const parsed = JSON.parse(persisted);
+        if (Array.isArray(parsed)) {
+          noticesCache = parsed;
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return [];
+  });
+  
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
-  const [loading, setLoading] = useState(!noticesCache);
+  const [loading, setLoading] = useState(() => !noticesCache);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (noticesCache) {
-      // Use cached notices directly without pulling from Firestore
+    if (noticesCache && noticesCache.length > 0) {
+      // SWR (Stale-While-Revalidate): Immediately display cache, fetch fresh data silently
       setNotices(noticesCache);
       setLoading(false);
+      fetchNotices(true); // silent background fetch
     } else {
-      fetchNotices();
+      fetchNotices(false); // full blocking fetch
     }
   }, []);
 
-  const fetchNotices = async () => {
-    setLoading(true);
+  const fetchNotices = async (isRevalidating = false) => {
+    if (!isRevalidating) {
+      setLoading(true);
+    }
     setError("");
     try {
-      const querySnapshot = await getDocs(collection(db, "notices"));
-      const noticesList: Notice[] = [];
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        noticesList.push({
-          id: docSnap.id,
-          title: data.title || "",
-          content: data.content || "",
-          date: data.date || "",
-          isPinned: !!data.isPinned,
-          views: data.views || 0,
-        });
-      });
+      const resp = await fetch("/api/notices");
+      if (!resp.ok) {
+        throw new Error("공지사항 소식을 읽어오는 데 실패했습니다.");
+      }
+      const data = await resp.json();
+      const noticesList: Notice[] = data.map((item: any) => ({
+        id: String(item.id),
+        title: item.title || "",
+        content: item.content || "",
+        date: item.date || "",
+        isPinned: !!item.isPinned,
+        views: item.views || 0,
+      }));
 
       // Sort notices: pinned first (descending), then by date (descending)
       noticesList.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
-        // fallback to date comparison
         return b.date.localeCompare(a.date);
       });
 
       setNotices(noticesList);
-      noticesCache = noticesList; // Save query list to memory cache
+      noticesCache = noticesList; // Update session cache
+      try {
+        sessionStorage.setItem("samjal_notices_cache", JSON.stringify(noticesList));
+      } catch (_) {}
     } catch (err: any) {
-      setError(err.message || "오류가 발생했습니다.");
-      handleFirestoreError(err, OperationType.LIST, "notices");
+      if (!isRevalidating) {
+        setError(err.message || "공지사항 소식을 읽어오는 중 문제가 발생했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -74,41 +92,41 @@ export default function SubNotice() {
     setNotices((prev) => {
       const updated = prev.map((n) => (n.id === notId ? { ...n, views: n.views + 1 } : n));
       noticesCache = updated;
+      try {
+        sessionStorage.setItem("samjal_notices_cache", JSON.stringify(updated));
+      } catch (_) {}
       return updated;
     });
 
     // Fire view count increment asynchronously in the background without blocking the UI
-    const docRef = doc(db, "notices", notId);
-    updateDoc(docRef, {
-      views: increment(1)
-    }).catch(() => {
-      // Safe to ignore on public read-only clients (firestore rules deny write)
+    fetch(`/api/notices/${notId}`).catch(() => {
+      // Ignore background analytics write errors silently
     });
   };
 
   return (
-    <div className="bg-[#FDFBF7] min-h-screen animate-fadeIn">
+    <div className="bg-white min-h-screen animate-fadeIn">
       
       {/* 서브 메인 비주얼 배너 섹션 (Main Section) */}
-      <div className="relative w-full h-[560px] sm:h-[720px] bg-[#2A2826] overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-[380px] sm:h-[480px] bg-[#0F172A] overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <img
-            src="/images/herbal_medicine_1779805229983.png"
+            src="/images/hygienic_premium_hanbang_herbal_1780497683155.png"
             alt="공지사항 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
         </div>
 
-        <div className="relative z-20 text-center space-y-3 px-4 animate-fadeIn">
-          <span className="text-[#C5A059] text-xs sm:text-sm font-serif tracking-widest uppercase font-bold flex items-center justify-center gap-1.5">
+        <div className="relative z-20 text-center space-y-3 px-4 animate-fadeIn pt-16">
+          <span className="text-sky-400 text-xs sm:text-sm font-sans tracking-widest uppercase font-bold flex items-center justify-center gap-1.5">
             Samjal Notice Desk
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white font-extrabold tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-sans text-white font-extrabold tracking-tight">
             알림마당 / 공지사항
           </h1>
-          <p className="text-[#DFD5C6] font-serif text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
+          <p className="text-slate-300 font-sans text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
             삼잘한의원의 진료 일정 변경, 하절기 휴진 및 건강 동향<br /> 한방 칼럼 소식입니다.
           </p>
         </div>
@@ -119,15 +137,15 @@ export default function SubNotice() {
         {/* 로딩 장벽 */}
         {loading ? (
           <div className="text-center py-20">
-            <div className="w-10 h-10 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm font-serif text-[#2A2826]/80">소식을 정성스럽게 서적에서 찾아내는 중입니다...</p>
+            <div className="w-10 h-10 border-2 border-[#0F2C59] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-sm font-sans text-slate-500">소식을 빠르고 정밀하게 불러오는 중입니다...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 bg-white border border-[#DFD5C6]/40 rounded-xl max-w-lg mx-auto p-8">
-            <p className="text-sm font-serif text-red-600 font-bold mb-4">{error}</p>
+          <div className="text-center py-20 bg-white border border-slate-200 rounded-xl max-w-lg mx-auto p-8 shadow-sm">
+            <p className="text-sm font-sans text-red-600 font-bold mb-4">{error}</p>
             <button
-              onClick={fetchNotices}
-              className="px-4 py-2 bg-[#C5A059] rounded-lg text-xs font-serif text-[#2A2826] font-bold cursor-pointer"
+              onClick={() => fetchNotices(false)}
+              className="px-4 py-2 bg-[#0F2C59] rounded-lg text-xs font-sans text-white font-bold cursor-pointer transition-colors hover:bg-indigo-900"
             >
               다시 가져오기
             </button>
@@ -135,51 +153,51 @@ export default function SubNotice() {
         ) : (
           <div className="max-w-4xl mx-auto overflow-hidden">
             
-            {/* 가로 기와풍 테이블 헤더 */}
-            <div className="hidden sm:grid grid-cols-12 bg-[#2A2826] text-[#DFD5C6] px-6 py-4 text-xs font-serif uppercase tracking-widest font-bold">
-              <span className="col-span-1 text-center">번호</span>
-              <span className="col-span-7 pl-4">제목</span>
-              <span className="col-span-2 text-center">등록일</span>
-              <span className="col-span-2 text-center">조회수</span>
+            {/* 가로 테이블 헤더 */}
+            <div className="hidden sm:grid grid-cols-12 bg-[#0F172A] text-slate-300 px-6 py-4 text-xs font-sans uppercase tracking-widest font-bold rounded-t-lg">
+              <span className="col-span-1 text-center font-semibold">번호</span>
+              <span className="col-span-7 pl-4 font-semibold">제목</span>
+              <span className="col-span-2 text-center font-semibold">등록일</span>
+              <span className="col-span-2 text-center font-semibold">조회수</span>
             </div>
 
             {/* 리스트 아이템목록 */}
-            <div className="divide-y divide-[#DFD5C6]/40">
+            <div className="divide-y divide-slate-100 border-b border-slate-200">
               {(notices || []).map((n, idx) => (
                 <div
                   key={n.id}
                   onClick={() => handleNoticeClick(n.id)}
-                  className="grid grid-cols-1 sm:grid-cols-12 px-6 py-5 sm:py-6 text-stone-800 hover:bg-[#FDFBF7]/80 transition-colors duration-300 items-center cursor-pointer group"
+                  className="grid grid-cols-1 sm:grid-cols-12 px-6 py-5 sm:py-6 text-slate-700 hover:bg-slate-50 transition-colors duration-300 items-center cursor-pointer group"
                 >
-                  <span className="col-span-1 text-center hidden sm:block font-serif text-sm text-[#5C6351]">
-                     {n.id}
+                  <span className="col-span-1 text-center hidden sm:block font-sans text-sm text-slate-400">
+                     {idx + 1}
                   </span>
                   
                   {/* 모바일 최적화 타이틀 */}
                   <div className="col-span-1 sm:col-span-7 pl-0 sm:pl-4 space-y-1.5 flex flex-col items-start">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <FileText className="w-4 h-4 text-[#C5A059] shrink-0" />
-                      <h3 className="text-sm sm:text-base font-serif font-bold text-[#2A2826] group-hover:text-[#C5A059] transition-all text-left">
+                      <FileText className="w-4 h-4 text-sky-500 shrink-0" />
+                      <h3 className="text-sm sm:text-base font-sans font-bold text-slate-800 group-hover:text-[#0F2C59] transition-all text-left">
                         {n.title}
                       </h3>
-                      {idx === 0 && (
+                      {n.isPinned && (
                         <span className="inline-block px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded">
-                          N
+                          공지
                         </span>
                       )}
                     </div>
                     {/* 모바일 서브 가이드 정보 */}
-                    <div className="flex sm:hidden items-center gap-3 text-[11px] text-[#5C6351]">
+                    <div className="flex sm:hidden items-center gap-3 text-[11px] text-slate-400 font-sans">
                       <span>{n.date}</span>
                       <span>&bull;</span>
                       <span>조회수 {n.views}</span>
                     </div>
                   </div>
 
-                  <span className="col-span-2 text-center hidden sm:block font-serif text-xs text-[#5C6351]">
+                  <span className="col-span-2 text-center hidden sm:block font-sans text-xs text-slate-400">
                     {n.date}
                   </span>
-                  <span className="col-span-2 text-center hidden sm:block font-serif text-xs text-[#5C6351] group-hover:text-stone-900">
+                  <span className="col-span-2 text-center hidden sm:block font-sans text-xs text-slate-400 group-hover:text-slate-900">
                     {n.views}
                   </span>
                 </div>
@@ -192,16 +210,16 @@ export default function SubNotice() {
         {/* 상세 팝업 모달 */}
         {selectedNotice && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-[#FDFBF7] border border-[#C5A059]/30 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden animate-scaleUp">
+            <div className="bg-white border border-slate-200 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden animate-scaleUp">
               
               {/* 모달 헤더 */}
-              <div className="bg-[#2A2826] text-[#DFD5C6] px-6 py-5 flex justify-between items-center border-b border-[#C5A059]/45">
+              <div className="bg-[#0F172A] text-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm tracking-wider font-serif">삼잘한의원 공식 서신 공고</span>
+                  <span className="text-xs sm:text-sm tracking-wider font-sans text-slate-300">삼잘 메디컬 소식 공고</span>
                 </div>
                 <button
                   onClick={() => setSelectedNotice(null)}
-                  className="p-1 rounded-full text-[#DFD5C6] hover:bg-white/10 cursor-pointer"
+                  className="p-1 rounded-full text-slate-400 hover:bg-white/10 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -209,34 +227,34 @@ export default function SubNotice() {
 
               {/* 모달 본문 */}
               <div className="p-6 sm:p-8 space-y-6">
-                <div className="space-y-3 pb-4 border-b border-[#DFD5C6]/50">
-                  <h3 className="text-xl sm:text-2xl font-serif text-[#2A2826] font-bold text-left leading-relaxed">
+                <div className="space-y-3 pb-4 border-b border-slate-200">
+                  <h3 className="text-xl sm:text-2xl font-sans text-[#0F172A] font-bold text-left leading-relaxed">
                     {selectedNotice.title}
                   </h3>
-                  <div className="flex justify-between items-center text-xs text-[#5C6351]">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="flex items-center gap-1 font-sans">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
                       등록일: {selectedNotice.date}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-3.5 h-3.5" />
+                    <span className="flex items-center gap-1 font-sans">
+                      <Eye className="w-3.5 h-3.5 text-slate-400" />
                       조회수: {selectedNotice.views}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-stone-800 font-serif text-sm sm:text-base leading-relaxed text-left whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2">
+                <div className="text-slate-700 font-sans text-sm sm:text-base leading-relaxed text-left whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2">
                   {selectedNotice.content}
                 </div>
               </div>
 
               {/* 모달 풋버튼 */}
-              <div className="bg-[#DFD5C6]/20 px-6 py-4 flex justify-end border-t border-[#DFD5C6]/40">
+              <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-100">
                 <button
                   onClick={() => setSelectedNotice(null)}
-                  className="px-6 py-2 bg-[#2A2826] text-[#DFD5C6] hover:bg-[#C5A059] hover:text-[#2A2826] text-xs font-serif tracking-wider rounded-lg transition-colors duration-300 cursor-pointer"
+                  className="px-6 py-2 bg-[#0F172A] text-white hover:bg-[#0F2C59] text-xs font-sans tracking-wider rounded-lg transition-colors duration-300 cursor-pointer"
                 >
-                  서신 닫기
+                  소식 닫기
                 </button>
               </div>
 

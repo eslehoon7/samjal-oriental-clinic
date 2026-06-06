@@ -21,34 +21,37 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       title: "통증 & 관절 & 척추 맞춤 회복 클리닉",
       subtitle: "골반 관절 및 비대칭의 즉각적 교정",
       desc: "삼잘한의원의 대표 시그니처 요법인 '대관절 동기침법'을 접목하여 협착증, 만성 디스크, 좌골신경통, 오십견, 퇴행성 관절염 등 깊숙하고 둔택한 고관절 통증을 직접 치료합니다.",
+      diseases: "무릎관절염, 어깨질환: 오십견/회전근개 손상, 척추(협착증/디스크), 외상(스포츠, 교통사고)",
       benefits: [
         "대관절 동기침법을 통한 관절 깊숙한 유착 해제 및 자가 가동범위 확대",
         "국가대표 선수들이 전수받은 침치료 기법으로 빠른 근섬유 부종 해소",
         "수승화강 요법을 결합하여 염증 독기로 타오르는 관절 열 증세 신속 진정",
         "삼잘 보원탕을 통한 등뼈 주위 기혈 강화 및 골감소 회복"
       ],
-      image: "/images/acupuncture_treatment_1779805206489.png"
+      image: "/images/professional_clean_acupuncture_1780497559621.png"
     },
     internal: {
       title: "비위(脾胃) 및 만성 장내과 클리닉",
       subtitle: "잘 먹고, 잘 통하는 행복한 소화기",
-      desc: "복부 불쾌감, 위경련, 상부 역류성 식도염, 설사 및 지독한 장 정체를 전통 상한설(傷寒說) 기초와 맥진을 통해 심층 치료합니다. 비위의 차가운 냉기를 몰아내 소화 화력을 증폭시킵니다.",
+      desc: "복부 불쾌감, 위경련, 상부 역류성 식도염, 설사 및 지독한 장 정체를 상한의학 이론과 정밀 유전자 진단을 통해 과학적으로 치료합니다. 위장 피로도를 경감하여 건강한 영양 흡수를 증폭시킵니다.",
+      diseases: "저체중/과체중, 소화기, 대사질환(고혈압, 고지혈증, 당뇨), 불면증",
       benefits: [
         "삼잘 보원의 보위 탕약 조제로 위 벽 점막 세포의 탄탄한 자가 복구 보조",
-        "복부 가스가 소통되고 단전을 덥혀주는 한방 뜸/침맥 온열 관리 시스템",
+        "복부 가스가 소통되고 단전을 덥혀주는 스마트 온열 및 침구 관리 시스템",
         "체질 맞춤 식이 가이드북 제공으로 매일의 잘먹는 패턴 완비",
         "독소 역류로 인한 두통, 만성 피로의 연대 고리 원인 차단"
       ],
-      image: "/images/herbal_medicine_1779805229983.png"
+      image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     },
     allergy: {
       title: "알레르기 & 면역 회복 클리닉",
       subtitle: "무너진 면역 장벽의 자생 강화",
-      desc: "만성 비염, 아토피, 알레르기 두드러기, 천식 등은 체내 면역 단절이 한계치에 다다랐을 때 표출됩니다. 장 장벽의 가래 독소(담음)를 정화하여 과민 반응하지 않는 굳건한 림프 순환을 확립시킵니다.",
+      desc: "만성 비염, 아토피, 알레르기 두드러기, 천식 등은 체내 면역 단절이 한계치에 다다랐을 때 표출됩니다. 장 장벽의 담음 독소를 기계적으로 디톡스하여 자극물질에 과민 반응하지 않는 림프 세포 순환을 확립시킵니다.",
+      diseases: "비염, 결막염, 두드러기, 아토피/천식",
       benefits: [
-        "장청 해독 탕약 조제로 장 누수 증상 and 혈액 내 독성 피로 물질 즉각 정화",
-        "한방 혈위 자궁 면역 약침 자침으로 피부 및 비강 장벽의 붓기 제어",
-        "수면 질 향상(잘자기) 처방을 통하여 자율신경계 밤샘 복원력 부양",
+        "장청 해독 탕약 조제로 장 누수 증상 및 전신 혈관 노폐물 정화",
+        "항염증 특허 약침 성분 처방으로 피부 비강 점막 장벽의 과립세포 안정화",
+        "자율신경 조절 처방법을 통하여 교감 신경 흥문 완화 및 숙면 정복",
         "체질 침 치료를 통한 만성적인 한열 편중 체질성 불균형 극복"
       ],
       image: "/images/clinic_interior_1779805270752.png"
@@ -56,55 +59,57 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     cancer: {
       title: "한양방 통합 암 요관리 클리닉",
       subtitle: "항암 부작용 완화 및 종양 미세환경 정화",
-      desc: "암 치료 과정에서 극심한 오심, 구토, 불면, 식욕부진, 기력 저하를 겪는 환우님들을 위해 체계적인 면역 보양 치료를 제공합니다. 대학병원 항암 스케줄을 무사히 이수하도록 신체 자생력을 높여 줍니다.",
+      desc: "암 치료 과정에서 발생하는 피로, 메스꺼움, 심한 기력 손실을 겪는 환우분들을 위해 과학적인 면역 조력 보조 약학을 병행합니다. 대학병원 암 스케줄을 무리 없이 완료할 수 있도록 지원합니다.",
+      diseases: "재발 및 전이 관리, 항암부작용 관리, 암종과 병기에 따라 다른 치료법 적용",
       benefits: [
-        "위암, 대장암, 자궁암 및 유방암 등 암종별 최적의 한방 기력 배가 처방",
-        "면역 세포 활력을 직접 증강시키는 고농축 진세노사이드 삼잘 산삼 약침 요법",
-        "심신의 긴장감을 풀고 뇌를 안정시켜 아늑한 잠에 들도록 유도하는 삼잘 안신단",
-        "임상 암 정보 빅데이터에 근거한 안전하고 교차 검증된 약재 선정 법칙"
+        "위암, 대장암, 자궁암 및 유방암 등 암종별 세분화된 진료 프로토콜 도입",
+        "종양 억제 면역 인자 분비를 촉진하는 고순도 산삼 약침 요법 진행",
+        "심신 흥분감을 진정시키는 안신(安神) 뇌파 유도 시스템 구비",
+        "임상 통계 자료와 논문에 수차례 입증된 부작용 제로의 청정 약재만 처방"
       ],
       image: "/images/samjal_crew_1779805249409.png"
     },
     detox: {
-      title: "전통 항노화 & 체내 해독 클리닉",
-      subtitle: "맑은 피와 젊고 활기찬 신체 리듬 회복",
-      desc: "체내에 정체된 만성 염증, 중금속, 대사 장벽 찌꺼기를 세정하여 세포 수준의 미토콘드리아 전위 회복을 완성시킵니다. 신진대사의 화력을 불태우고 젊은 피부와 가벼운 기상을 부양합니다.",
+      title: "항노화 & 생체 해독 클리닉",
+      subtitle: "맑은 혈액과 가볍고 활기찬 신체 리듬 치료",
+      desc: "체내 세포 속에 잔류해 노화를 재촉하는 대사 가스 찌꺼기와 활성 산소를 소거하여 미토콘드리아 청량도를 높여줍니다. 오장육부의 정화력을 깨우고 활력을 되찾아 줍니다.",
+      diseases: "항노화유전자 활성화, 텔로머레이즈 활성화, 항산화시스템 활성화",
       benefits: [
-        "삼잘 장청 한방 배독 관장 및 전신 혈맥 기혈 사혈 사독 시스템",
-        "위장의 식적 독소 및 복부 비만 숙변 가스 일주일 단기 고속 청소",
-        "경희대 연구진들의 체계적인 한방 기명 안티에이징 공진 보환 처방",
-        "몸을 차갑고 정적으로 가두는 활성 젖산 제거 스트레칭 전수 조치"
+        "삼잘 장정 디톡스 요법 및 가동성 극대화를 위한 스마트 순환 치료 시스템",
+        "중성지방 수치를 제어하고 소화 대사 기능을 정화하는 1:1 디톡스 케어",
+        "임상 유효율이 검증된 핵심 안티에이징 생명 보존 활성 처방",
+        "피로 유발 잔류 물질 제거를 위한 환자 특화 맞춤 가이드라인"
       ],
-      image: "/images/herbal_medicine_1779805229983.png"
+      image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     }
   };
 
   const current = contents[activeSubTab as keyof typeof contents];
 
   return (
-    <div className="bg-[#FDFBF7] min-h-screen animate-fadeIn">
+    <div className="bg-white min-h-screen animate-fadeIn">
       
       {/* 서브 메인 비주얼 배너 섹션 (Main Section) */}
-      <div className="relative w-full h-[560px] sm:h-[720px] bg-[#2A2826] overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-[380px] sm:h-[480px] bg-[#0F172A] overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2A2826]/85 to-[#A67C52]/35 mix-blend-multiply z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <img
-            src="/images/acupuncture_treatment_1779805206489.png"
+            src="/images/professional_clean_acupuncture_1780497559621.png"
             alt="진료과목 배경"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
         </div>
 
-        <div className="relative z-20 text-center space-y-3 px-4 animate-fadeIn">
-          <span className="text-[#C5A059] text-xs sm:text-sm font-serif tracking-widest uppercase font-bold flex items-center justify-center gap-1.5">
+        <div className="relative z-20 text-center space-y-3 px-4 animate-fadeIn pt-16">
+          <span className="text-sky-400 text-xs sm:text-sm font-sans tracking-widest uppercase font-bold flex items-center justify-center gap-1.5">
             Specialized Medical Departments
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white font-extrabold tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-sans text-white font-extrabold tracking-tight">
             정밀 진료과목
           </h1>
-          <p className="text-[#DFD5C6] font-serif text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
-            근본적 자생 능력 회복을 목표로 하는 <br /> 삼잘의 검증된 특수 의료진과 수공치료를 경험하십시오.
+          <p className="text-slate-300 font-sans text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
+            근본적 건강 복원을 향해 달리는<br /> 삼잘의 차별화된 분과 진료와 전문 정맥 요법을 만나보십시오.
           </p>
         </div>
       </div>
@@ -112,16 +117,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         
         {/* 탭 네비게이션 */}
-        <div className="flex justify-center border-b border-[#DFD5C6]/40 mb-16 max-w-2xl mx-auto">
-          <div className="grid grid-cols-5 w-full">
+        <div className="flex justify-center border-b border-slate-200 mb-16 max-w-3xl mx-auto">
+          <div className="flex justify-between items-center w-full -mb-px">
             {subTabs.map((ts) => (
               <button
                 key={ts.id}
                 onClick={() => setActiveSubTab(ts.id)}
-                className={`py-3 text-center text-[11px] sm:text-sm font-serif tracking-wider transition-all duration-300 border-b-2 cursor-pointer ${
+                className={`py-3 px-2 sm:px-4 md:px-6 text-center text-xs sm:text-sm md:text-base font-sans tracking-wide transition-all duration-300 border-b-2 cursor-pointer whitespace-nowrap -mb-px flex-1 ${
                   activeSubTab === ts.id
-                    ? "border-[#CEAD6F] text-[#CEAD6F] font-bold"
-                    : "border-transparent text-[#2A2826]/70 hover:text-[#CEAD6F]"
+                    ? "border-[#0F2C59] text-[#0F2C59] font-semibold"
+                    : "border-transparent text-slate-500 hover:text-[#0F2C59]"
                 }`}
               >
                 {ts.label}
@@ -134,29 +139,40 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
           
           {/* 왼쪽 텍스트 정보 */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-6 text-left">
             <div className="space-y-4">
               <div className="space-y-2">
-                <span className="text-xs font-serif text-[#C5A059] uppercase tracking-wider block font-semibold">
+                <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-wider block font-semibold">
                   {current.subtitle}
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-serif text-[#2A2826] font-bold leading-tight">
+                <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   {current.title}
                 </h3>
               </div>
-              <div className="w-12 h-1 bg-[#C5A059]" />
-              <p className="text-sm sm:text-base font-serif text-[#2A2826]/85 leading-relaxed">
+              <div className="w-12 h-1 bg-[#0F2C59]" />
+              <p className="text-sm sm:text-base font-sans text-slate-600 leading-relaxed">
                 {current.desc}
               </p>
 
-              <div className="space-y-3 pt-4 border-t border-[#DFD5C6]/30">
-                <h4 className="text-sm font-semibold uppercase tracking-wider text-[#2A2826] font-serif">
+              {current.diseases && (
+                <div className="border-l border-slate-300 pl-4 py-1 space-y-1.5 animate-fadeIn">
+                  <span className="text-xs font-sans text-slate-400 font-normal uppercase tracking-wider block">
+                    주요 치료 대상 및 진료 내용
+                  </span>
+                  <p className="text-xs sm:text-sm font-sans text-slate-700 font-semibold leading-relaxed">
+                    {current.diseases}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                <h4 className="text-sm font-semibold uppercase tracking-wider text-[#0F172A] font-sans">
                   주요 핵심 치료 혜택
                 </h4>
                 <ul className="space-y-2.5">
                   {current.benefits.map((bf, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm font-serif text-[#5C6351]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059] shrink-0 mt-2" />
+                    <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm font-sans text-slate-500">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0F2C59]/80 shrink-0 mt-2" />
                       <span className="leading-relaxed">{bf}</span>
                     </li>
                   ))}
@@ -171,7 +187,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                   setActiveTab("reservation");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#2A2826] hover:bg-[#C5A059] text-white hover:text-[#2A2826] transition-all duration-300 rounded-lg text-sm font-serif tracking-wider cursor-pointer font-semibold shadow-sm"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-[#0F2C59] text-white transition-all duration-300 rounded-lg text-sm font-sans tracking-wide cursor-pointer font-semibold shadow-sm"
               >
                 <span>이 진료과목 온라인 예약/AI진단 상담</span>
                 <ArrowRight className="w-4 h-4" />
@@ -180,16 +196,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
           </div>
 
           {/* 오른쪽 시각적 고품질 생성 이미지 결합부 (리퍼러 정책 준수) */}
-          <div className="lg:col-span-5 min-h-[300px] rounded-xl overflow-hidden border border-[#DFD5C6] shadow-inner relative flex flex-col">
+          <div className="lg:col-span-5 min-h-[300px] rounded-xl overflow-hidden border border-slate-200 shadow-inner relative flex flex-col">
             <img
               src={current.image}
               alt={current.title}
               className="w-full h-full object-cover flex-1"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10">
-              <p className="text-[#DFD5C6] text-xs font-serif">Samjal Special Recovery Focus Care</p>
-              <h4 className="text-white text-base font-serif font-bold">전통 침뜸약선 융합기술</h4>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10 text-left">
+              <p className="text-slate-300 text-xs font-sans">Samjal Special Recovery Focus Care</p>
+              <h4 className="text-white text-base font-sans font-bold">정밀 의학 기반 침구약학 솔루션</h4>
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import { HeartPulse, CheckCircle2 } from "lucide-react";
+import TransparentImage from "./TransparentImage";
 
 export default function SamjalValue() {
   const values = [
@@ -20,20 +21,21 @@ export default function SamjalValue() {
   ];
 
   return (
-    <section className="py-20 bg-[#FDFBF7] border-b border-[#DFD5C6]/50">
+    <section className="py-20 bg-[#F8FAFC] border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 상단 타이포그래피 안내 */}
         <div className="text-center space-y-3 mb-16">
-          <p className="text-xs sm:text-sm font-serif text-[#C5A059] tracking-[0.3em] uppercase font-bold">
+          <p className="text-xs sm:text-sm font-sans text-[#0F2C59] tracking-[0.3em] uppercase font-bold">
             Health Philosophy & Harmony
           </p>
-          <h2 className="text-2xl sm:text-4xl font-serif text-[#2A2826] font-bold tracking-wide">
+          <h2 className="text-2xl sm:text-4xl font-sans text-[#0F172A] font-bold tracking-wide">
             가장 기본적이면서 가장 위대한 &apos;삼잘&apos; 원칙
           </h2>
-          <div className="w-12 h-0.5 bg-[#C5A059] mx-auto mt-4" />
-          <p className="text-sm font-serif text-[#5C6351] max-w-xl mx-auto pt-2 leading-relaxed">
-            한의학은 특별한 비책이 아닙니다. 매일의 수면, 식사, 배변이 물 흐르듯 순리로워야만 온전히 건강한 육체가 비로소 시작됩니다.
+          <div className="w-12 h-0.5 bg-[#0F2C59] mx-auto mt-4" />
+          <p className="text-sm font-sans text-slate-500 max-w-xl mx-auto pt-2 leading-relaxed">
+            우리 몸 본연의 자생력을 되찾는 한의 치료, 삼잘한의원입니다.<br />
+            끊임없는 연구와 세심한 진료로 함께하겠습니다.
           </p>
         </div>
 
@@ -41,21 +43,19 @@ export default function SamjalValue() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* 왼쪽 삼잘 일러스트 캐릭터 뷰포트 (사용자 그림 1:1 완벽 정위 매치) */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-white border border-[#DFD5C6]/40 rounded-2xl shadow-md relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-[#C5A059]" />
-            <div className="w-full max-w-[340px] aspect-square overflow-hidden rounded-xl">
-              <img
+          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-white border border-slate-200 rounded-2xl shadow-md relative overflow-hidden group">
+            <div className="w-full max-w-[340px] aspect-square overflow-hidden rounded-xl bg-transparent">
+              <TransparentImage
                 src="/images/samjal_characters_1779805299286.png"
                 alt="삼잘한의원 캐릭터 일러스트"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                referrerPolicy="no-referrer"
               />
             </div>
-            {/* 하단 동글동글 명조 엠블럼 */}
-            <h3 className="text-2xl font-serif font-bold text-[#A67C52] tracking-widest mt-6">
+            {/* 하단 동글동글 엠블럼 */}
+            <h3 className="text-2xl font-sans font-bold text-[#0F2C59] tracking-widest mt-6">
               삼잘한의원
             </h3>
-            <p className="text-[#C5A059] font-serif text-xs tracking-wider uppercase mt-1">
+            <p className="text-[#64748B] font-sans text-xs tracking-wider uppercase mt-1">
               well sleep · well digest · well detox
             </p>
           </div>
@@ -68,20 +68,20 @@ export default function SamjalValue() {
                 className="relative pl-6 sm:pl-10 space-y-2 group"
               >
                 {/* 세련된 한방 자인 표식 */}
-                <span className="absolute left-0 top-1 text-2xl font-serif font-semibold text-[#C5A059]/30 group-hover:text-[#C5A059] transition-colors duration-300">
+                <span className="absolute left-0 top-1 text-2xl font-sans font-extrabold text-slate-200 group-hover:text-[#0F2C59] transition-colors duration-300">
                   0{index + 1}
                 </span>
                 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <h4 className="text-xl sm:text-2xl font-serif font-bold text-[#2A2826] hover:text-[#C5A059] transition-colors">
+                  <h4 className="text-xl sm:text-2xl font-sans font-bold text-[#0F172A] hover:text-[#0F2C59] transition-colors">
                     {val.title}
                   </h4>
-                  <span className="inline-flex self-start sm:self-center px-2 py-0.5 bg-[#C5A059]/10 text-[#C5A059] text-[10px] sm:text-xs font-serif rounded border border-[#C5A059]/20 uppercase font-semibold">
+                  <span className="inline-flex self-start sm:self-center px-2 py-0.5 bg-[#0F2C59]/10 text-[#0F2C59] text-[10px] sm:text-xs font-sans rounded border border-[#0F2C59]/20 uppercase font-semibold">
                     {val.accent}
                   </span>
                 </div>
                 
-                <p className="text-[15px] sm:text-[17px] font-serif text-[#2A2826]/85 leading-relaxed tracking-wide pt-2 border-l-2 border-[#DFD5C6]/60 pl-4 group-hover:border-[#C5A059] transition-all">
+                <p className="text-[15px] sm:text-[17px] font-sans text-slate-600 leading-relaxed tracking-wide pt-2 border-l-2 border-slate-200 pl-4 group-hover:border-[#0F2C59] transition-all">
                   {val.desc}
                 </p>
               </div>
