@@ -41,15 +41,15 @@ export default function SubNotice() {
     setError("");
     try {
       const snapshot = await getDocs(collection(db, "notices"));
-      const noticesList: Notice[] = snapshot.docs.map((doc) => {
-        const d = doc.data();
+      const noticesList: Notice[] = snapshot.docs.map((d) => {
+        const data = d.data();
         return {
-          id: String(d.id),
-          title: d.title || "",
-          content: d.content || "",
-          date: d.date || "",
-          isPinned: !!d.isPinned,
-          views: d.views || 0,
+          id: String(data.id),
+          title: data.title || "",
+          content: data.content || "",
+          date: data.date || "",
+          isPinned: !!data.isPinned,
+          views: data.views || 0,
         };
       });
 
@@ -89,7 +89,6 @@ export default function SubNotice() {
       return updated;
     });
 
-    // Firestore 조회수 증가
     try {
       const snapshot = await getDocs(collection(db, "notices"));
       const targetDoc = snapshot.docs.find((d) => String(d.data().id) === notId);
@@ -119,7 +118,7 @@ export default function SubNotice() {
             알림마당 / 공지사항
           </h1>
           <p className="text-slate-300 font-sans text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
-            삼잘한의원의 진료 일정 변경, 하절기 휴진 및 건강 동향<br /> 한방 칼럼 소식입니다.
+            삼잘한의원의 진료 일정 변경, 하절기 휴진 및 건강 동향<br />한방 칼럼 소식입니다.
           </p>
         </div>
       </div>
@@ -163,3 +162,75 @@ export default function SubNotice() {
                       <FileText className="w-4 h-4 text-sky-500 shrink-0" />
                       <h3 className="text-sm sm:text-base font-sans font-bold text-slate-800 group-hover:text-[#0F2C59] transition-all text-left">
                         {n.title}
+                      </h3>
+                      {n.isPinned && (
+                        <span className="inline-block px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded">
+                          공지
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex sm:hidden items-center gap-3 text-[11px] text-slate-400 font-sans">
+                      <span>{n.date}</span>
+                      <span>&bull;</span>
+                      <span>조회수 {n.views}</span>
+                    </div>
+                  </div>
+                  <span className="col-span-2 text-center hidden sm:block font-sans text-xs text-slate-400">
+                    {n.date}
+                  </span>
+                  <span className="col-span-2 text-center hidden sm:block font-sans text-xs text-slate-400 group-hover:text-slate-900">
+                    {n.views}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedNotice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white border border-slate-200 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden animate-scaleUp">
+              <div className="bg-[#0F172A] text-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-800">
+                <span className="text-xs sm:text-sm tracking-wider font-sans text-slate-300">삼잘 메디컬 소식 공고</span>
+                <button
+                  onClick={() => setSelectedNotice(null)}
+                  className="p-1 rounded-full text-slate-400 hover:bg-white/10 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 sm:p-8 space-y-6">
+                <div className="space-y-3 pb-4 border-b border-slate-200">
+                  <h3 className="text-xl sm:text-2xl font-sans text-[#0F172A] font-bold text-left leading-relaxed">
+                    {selectedNotice.title}
+                  </h3>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="flex items-center gap-1 font-sans">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      등록일: {selectedNotice.date}
+                    </span>
+                    <span className="flex items-center gap-1 font-sans">
+                      <Eye className="w-3.5 h-3.5 text-slate-400" />
+                      조회수: {selectedNotice.views}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-slate-700 font-sans text-sm sm:text-base leading-relaxed text-left whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2">
+                  {selectedNotice.content}
+                </div>
+              </div>
+              <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-100">
+                <button
+                  onClick={() => setSelectedNotice(null)}
+                  className="px-6 py-2 bg-[#0F172A] text-white hover:bg-[#0F2C59] text-xs font-sans tracking-wider rounded-lg transition-colors duration-300 cursor-pointer"
+                >
+                  소식 닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
