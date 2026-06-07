@@ -4,6 +4,8 @@ import {
   Activity, ChevronDown, ChevronUp, User, Sparkles, Pencil, X, Plus, Upload
 } from "lucide-react";
 import { Notice, DiagnoseItem } from "../types";
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function SubAdmin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -84,12 +86,25 @@ export default function SubAdmin() {
     setNoticeLoading(true);
     setDiagLoading(true);
     try {
-      // 1. Fetch Notices
-      const noticeVal = await fetch("/api/notices");
-      if (noticeVal.ok) {
-        const data = await noticeVal.json();
-        setNotices(data);
-      }
+      // 1. Fetch Notices from Firebase
+      const snapshot = await getDocs(collection(db, "notices"));
+      const noticesList: Notice[] = snapshot.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: String(data.id),
+          title: data.title || "",
+          content: data.content || "",
+          date: data.date || "",
+          isPinned: !!data.isPinned,
+          views: data.views || 0,
+        };
+      });
+      noticesList.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return b.date.localeCompare(a.date);
+      });
+      setNotices(noticesList);
 
       // 2. Fetch Photos from localStorage
       const savedPhotos = localStorage.getItem("samjal_gallery_items");
