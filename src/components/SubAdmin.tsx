@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Notice, DiagnoseItem } from "../types";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 
 export default function SubAdmin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -112,12 +112,25 @@ export default function SubAdmin() {
         setPhotos(JSON.parse(savedPhotos));
       }
 
-      // 3. Fetch Diagnoses
-      const diagVal = await fetch("/api/diagnoses");
-      if (diagVal.ok) {
-        const data = await diagVal.json();
-        setDiagnoses(data);
-      }
+      // 3. Fetch Diagnoses from Firebase
+      const diagSnapshot = await getDocs(collection(db, "diagnoses"));
+      const diagList: DiagnoseItem[] = diagSnapshot.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: data.id || d.id,
+          age: data.age || "",
+          gender: data.gender || "",
+          sleep: data.sleep || "",
+          eat: data.eat || "",
+          poop: data.poop || "",
+          symptoms: data.symptoms || "",
+          createdAt: data.createdAt || "",
+          analysis: data.analysis || "",
+          doctorNotes: data.doctorNotes || "",
+        };
+      });
+      diagList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setDiagnoses(diagList);
     } catch (e) {
       console.error(e);
     } finally {
