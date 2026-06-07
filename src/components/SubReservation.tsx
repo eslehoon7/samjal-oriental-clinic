@@ -47,24 +47,78 @@ export default function SubReservation() {
     setLookupLoading(true);
 
     try {
-      const response = await fetch("/api/diagnoses");
-      if (response.ok) {
-        const list = await response.json();
-        // 가장 최근 진단 내역을 찾기 위함
-        const found = list.find((item: any) => {
-          const matchesAge = item.age === lookupForm.age;
-          const matchesGender = item.gender === lookupForm.gender;
-          const matchesId = lookupForm.idSlice ? item.id.endsWith(lookupForm.idSlice) : true;
-          return matchesAge && matchesGender && matchesId;
+      // 1. Kick off both Firestore and Express fetch in parallel
+      const fsPromise = (async () => {
+        try {
+          const { db } = await import("../firebase");
+          const { collection, getDocs } = await import("firebase/firestore");
+          const diagSnapshot = await getDocs(collection(db, "diagnoses"));
+          return diagSnapshot.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: String(data.id || d.id),
+              sleep: data.sleep || "",
+              eat: data.eat || "",
+              poop: data.poop || "",
+              age: data.age || "",
+              gender: data.gender || "",
+              symptoms: data.symptoms || "",
+              createdAt: data.createdAt || "",
+              analysis: data.analysis || "",
+              doctorNotes: data.doctorNotes || ""
+            };
+          });
+        } catch (fErr) {
+          console.warn("Firestore lookup fetch failed:", fErr);
+          return [];
+        }
+      })();
+
+      const expressPromise = fetch("/api/diagnoses")
+        .then(r => r.ok ? r.json() : [])
+        .catch(err => {
+          console.warn("Express lookup fetch failed:", err);
+          return [];
         });
 
-        if (found) {
-          setLookupResult(found);
-        } else {
-          setLookupError("입력하신 연령대, 성별 및 기록번호(고유주소)와 매칭되는 진단서를 찾을 수 없습니다. 원장실 등록 여부를 확인해 주십시오.");
-        }
+      // Await concurrently
+      const [fsList, apiList] = await Promise.all([fsPromise, expressPromise]);
+
+      let list = [...fsList];
+
+      // Merge results
+      if (apiList && Array.isArray(apiList)) {
+        apiList.forEach((ad: any) => {
+          const exists = list.some(item => String(item.id) === String(ad.id));
+          if (!exists) {
+            list.push({
+              id: String(ad.id),
+              sleep: ad.sleep || "",
+              eat: ad.eat || "",
+              poop: ad.poop || "",
+              age: ad.age || "",
+              gender: ad.gender || "",
+              symptoms: ad.symptoms || "",
+              createdAt: ad.createdAt || "",
+              analysis: ad.analysis || "",
+              doctorNotes: ad.doctorNotes || ""
+            });
+          }
+        });
+      }
+
+      // 가장 최근 진단 내역을 찾기 위함
+      const found = list.find((item: any) => {
+        const matchesAge = item.age === lookupForm.age;
+        const matchesGender = item.gender === lookupForm.gender;
+        const matchesId = lookupForm.idSlice ? item.id.endsWith(lookupForm.idSlice) : true;
+        return matchesAge && matchesGender && matchesId;
+      });
+
+      if (found) {
+        setLookupResult(found);
       } else {
-        setLookupError("진단 보관함 데이터베이스 동기화에 실패했습니다.");
+        setLookupError("입력하신 연령대, 성별 및 기록번호(고유주소)와 매칭되는 진단서를 찾을 수 없습니다. 원장실 등록 여부를 확인해 주십시오.");
       }
     } catch (err) {
       console.error(err);
@@ -133,6 +187,28 @@ export default function SubReservation() {
         const data = await response.json();
         setDiagResult(data.analysis);
         setIsDemo(!!data.isDemo);
+
+        // Firestore 동기화 추가를 통해 어드민이 완벽 연동하여 볼 수 있게 보장
+        if (data.diagnosis) {
+          try {
+            const { db } = await import("../firebase");
+            const { collection, addDoc } = await import("firebase/firestore");
+            await addDoc(collection(db, "diagnoses"), {
+              id: String(data.diagnosis.id),
+              sleep: data.diagnosis.sleep || "",
+              eat: data.diagnosis.eat || "",
+              poop: data.diagnosis.poop || "",
+              age: data.diagnosis.age || "",
+              gender: data.diagnosis.gender || "",
+              symptoms: data.diagnosis.symptoms || "",
+              createdAt: data.diagnosis.createdAt || new Date().toISOString(),
+              analysis: data.diagnosis.analysis || "",
+              doctorNotes: data.diagnosis.doctorNotes || ""
+            });
+          } catch (fErr) {
+            console.warn("Firestore diagnosis sync failed on client side:", fErr);
+          }
+        }
       } else {
         alert("자가 진단을 진행하기 위해 API 통신을 하는 데 실패했습니다.");
       }

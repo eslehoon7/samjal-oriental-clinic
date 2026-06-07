@@ -322,8 +322,16 @@ app.put("/api/diagnoses/:id", (req, res) => {
   const diagnosis = diagnoses.find(d => d.id === req.params.id);
   if (!diagnosis) return res.status(404).json({ error: "진단 기록을 찾을 수 없습니다." });
   
-  const { doctorNotes } = req.body;
-  diagnosis.doctorNotes = doctorNotes || "";
+  const { age, gender, sleep, eat, poop, symptoms, analysis, doctorNotes } = req.body;
+  if (age !== undefined) diagnosis.age = age;
+  if (gender !== undefined) diagnosis.gender = gender;
+  if (sleep !== undefined) diagnosis.sleep = sleep;
+  if (eat !== undefined) diagnosis.eat = eat;
+  if (poop !== undefined) diagnosis.poop = poop;
+  if (symptoms !== undefined) diagnosis.symptoms = symptoms;
+  if (analysis !== undefined) diagnosis.analysis = analysis;
+  if (doctorNotes !== undefined) diagnosis.doctorNotes = doctorNotes || "";
+  
   res.json({ success: true, diagnosis });
 });
 

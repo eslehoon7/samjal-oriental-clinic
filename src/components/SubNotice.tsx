@@ -40,18 +40,50 @@ export default function SubNotice() {
     if (!isRevalidating) setLoading(true);
     setError("");
     try {
-      const snapshot = await getDocs(collection(db, "notices"));
-      const noticesList: Notice[] = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: String(data.id),
-          title: data.title || "",
-          content: data.content || "",
-          date: data.date || "",
-          isPinned: !!data.isPinned,
-          views: data.views || 0,
-        };
+      // 1. Kick off Firestore and Express API in parallel
+      const fsNoticesPromise = getDocs(collection(db, "notices")).catch(fErr => {
+        console.warn("Firestore fetch notices failed, using local fallback:", fErr);
+        return null;
       });
+      const expressNoticesPromise = fetch("/api/notices").then(r => r.ok ? r.json() : []).catch(err => {
+        console.warn("Express API fetch notices failed:", err);
+        return [];
+      });
+
+      const [fsSnap, apiNotices] = await Promise.all([fsNoticesPromise, expressNoticesPromise]);
+
+      // 2. Parse notices
+      let noticesList: Notice[] = [];
+      if (fsSnap) {
+        noticesList = fsSnap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: String(data.id || d.id),
+            title: data.title || "",
+            content: data.content || "",
+            date: data.date || "",
+            isPinned: !!data.isPinned,
+            views: data.views || 0,
+          };
+        });
+      }
+
+      // Merge with Express notices API
+      if (apiNotices && Array.isArray(apiNotices)) {
+        apiNotices.forEach((an: Notice) => {
+          const exists = noticesList.some(n => String(n.id) === String(an.id));
+          if (!exists) {
+            noticesList.push({
+              id: String(an.id),
+              title: an.title || "",
+              content: an.content || "",
+              date: an.date || "",
+              isPinned: !!an.isPinned,
+              views: an.views || 0
+            });
+          }
+        });
+      }
 
       noticesList.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;

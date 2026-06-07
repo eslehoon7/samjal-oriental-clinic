@@ -54,6 +54,19 @@ export default function SubAdmin() {
   const [addDiagError, setAddDiagError] = useState("");
   const [addDiagLoading, setAddDiagLoading] = useState(false);
 
+  // 자가진단 기록 개별 수정 States
+  const [editingDiag, setEditingDiag] = useState<DiagnoseItem | null>(null);
+  const [editDiagAge, setEditDiagAge] = useState("");
+  const [editDiagGender, setEditDiagGender] = useState("");
+  const [editDiagSleep, setEditDiagSleep] = useState("");
+  const [editDiagEat, setEditDiagEat] = useState("");
+  const [editDiagPoop, setEditDiagPoop] = useState("");
+  const [editDiagSymptoms, setEditDiagSymptoms] = useState("");
+  const [editDiagAnalysis, setEditDiagAnalysis] = useState("");
+  const [editDiagDoctorNotes, setEditDiagDoctorNotes] = useState("");
+  const [editDiagLoading, setEditDiagLoading] = useState(false);
+  const [editDiagError, setEditDiagError] = useState("");
+
   // Doctor Notes State
   const [tempNotes, setTempNotes] = useState<Record<string, string>>({});
   const [saveNotesStatus, setSaveNotesStatus] = useState<Record<string, string>>({});
@@ -61,6 +74,18 @@ export default function SubAdmin() {
   const handleSaveNotes = async (id: string, notes: string) => {
     try {
       setSaveNotesStatus(prev => ({ ...prev, [id]: "저장 중..." }));
+      
+      // Firestore 동기화 업데이트 시도
+      try {
+        const snapshot = await getDocs(collection(db, "diagnoses"));
+        const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
+        if (targetDoc) {
+          await updateDoc(doc(db, "diagnoses", targetDoc.id), { doctorNotes: notes });
+        }
+      } catch (fErr) {
+        console.warn("Firestore update issue, continuing via Express API:", fErr);
+      }
+
       const response = await fetch(`/api/diagnoses/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -86,19 +111,65 @@ export default function SubAdmin() {
     setNoticeLoading(true);
     setDiagLoading(true);
     try {
-      // 1. Fetch Notices from Firebase
-      const snapshot = await getDocs(collection(db, "notices"));
-      const noticesList: Notice[] = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: String(data.id),
-          title: data.title || "",
-          content: data.content || "",
-          date: data.date || "",
-          isPinned: !!data.isPinned,
-          views: data.views || 0,
-        };
+      // 1. Kick off all Firebase snapshots and Express API fetch calls in parallel
+      const fsNoticesPromise = getDocs(collection(db, "notices")).catch(fErr => {
+        console.warn("Firestore notices fetch failed, using local fallback only:", fErr);
+        return null;
       });
+      const expressNoticesPromise = fetch("/api/notices").then(r => r.ok ? r.json() : []).catch(err => {
+        console.warn("Express API notices fetch failed:", err);
+        return [];
+      });
+      const fsDiagsPromise = getDocs(collection(db, "diagnoses")).catch(fErr => {
+        console.warn("Firestore diagnoses fetch failed, using local fallback only:", fErr);
+        return null;
+      });
+      const expressDiagsPromise = fetch("/api/diagnoses").then(r => r.ok ? r.json() : []).catch(err => {
+        console.warn("Express API diagnoses fetch failed:", err);
+        return [];
+      });
+
+      // Await all requests simultaneously to save loading time
+      const [fsNoticesSnap, apiNotices, fsDiagsSnap, apiDiags] = await Promise.all([
+        fsNoticesPromise,
+        expressNoticesPromise,
+        fsDiagsPromise,
+        expressDiagsPromise
+      ]);
+
+      // 2. Process Notices
+      let noticesList: Notice[] = [];
+      if (fsNoticesSnap) {
+        noticesList = fsNoticesSnap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: String(data.id || d.id),
+            title: data.title || "",
+            content: data.content || "",
+            date: data.date || "",
+            isPinned: !!data.isPinned,
+            views: data.views || 0,
+          };
+        });
+      }
+
+      // Merge with Express notices API
+      if (apiNotices && Array.isArray(apiNotices)) {
+        apiNotices.forEach((an: Notice) => {
+          const exists = noticesList.some(n => String(n.id) === String(an.id));
+          if (!exists) {
+            noticesList.push({
+              id: String(an.id),
+              title: an.title || "",
+              content: an.content || "",
+              date: an.date || "",
+              isPinned: !!an.isPinned,
+              views: an.views || 0
+            });
+          }
+        });
+      }
+
       noticesList.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
@@ -106,29 +177,53 @@ export default function SubAdmin() {
       });
       setNotices(noticesList);
 
-      // 2. Fetch Photos from localStorage
+      // 3. Fetch Photos from localStorage in parallel
       const savedPhotos = localStorage.getItem("samjal_gallery_items");
       if (savedPhotos) {
         setPhotos(JSON.parse(savedPhotos));
       }
 
-      // 3. Fetch Diagnoses from Firebase
-      const diagSnapshot = await getDocs(collection(db, "diagnoses"));
-      const diagList: DiagnoseItem[] = diagSnapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: data.id || d.id,
-          age: data.age || "",
-          gender: data.gender || "",
-          sleep: data.sleep || "",
-          eat: data.eat || "",
-          poop: data.poop || "",
-          symptoms: data.symptoms || "",
-          createdAt: data.createdAt || "",
-          analysis: data.analysis || "",
-          doctorNotes: data.doctorNotes || "",
-        };
-      });
+      // 4. Process Diagnoses
+      let diagList: DiagnoseItem[] = [];
+      if (fsDiagsSnap) {
+        diagList = fsDiagsSnap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: String(data.id || d.id),
+            age: data.age || "",
+            gender: data.gender || "",
+            sleep: data.sleep || "",
+            eat: data.eat || "",
+            poop: data.poop || "",
+            symptoms: data.symptoms || "",
+            createdAt: data.createdAt || "",
+            analysis: data.analysis || "",
+            doctorNotes: data.doctorNotes || "",
+          };
+        });
+      }
+
+      // Merge with Express diagnoses API
+      if (apiDiags && Array.isArray(apiDiags)) {
+        apiDiags.forEach((ad: DiagnoseItem) => {
+          const exists = diagList.some(d => String(d.id) === String(ad.id));
+          if (!exists) {
+            diagList.push({
+              id: String(ad.id),
+              age: ad.age || "",
+              gender: ad.gender || "",
+              sleep: ad.sleep || "",
+              eat: ad.eat || "",
+              poop: ad.poop || "",
+              symptoms: ad.symptoms || "",
+              createdAt: ad.createdAt || "",
+              analysis: ad.analysis || "",
+              doctorNotes: ad.doctorNotes || ""
+            });
+          }
+        });
+      }
+
       diagList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setDiagnoses(diagList);
     } catch (e) {
@@ -187,6 +282,21 @@ export default function SubAdmin() {
       });
       if (resp.ok) {
         const added = await resp.json();
+
+        // Firestore 동기화 추가
+        try {
+          await addDoc(collection(db, "notices"), {
+            id: String(added.notice.id),
+            title: added.notice.title,
+            content: added.notice.content,
+            date: added.notice.date,
+            isPinned: !!added.notice.isPinned,
+            views: added.notice.views
+          });
+        } catch (fErr) {
+          console.warn("Firestore notice write failed:", fErr);
+        }
+
         setNotices(prev => [added.notice, ...prev]);
         setNewNotice({ title: "", content: "", isPinned: false });
         setNoticeMessage("공지 전달문이 정상적으로 원내 전산망에 등록되었습니다.");
@@ -218,6 +328,21 @@ export default function SubAdmin() {
     }
     setNoticeLoading(true);
     try {
+      // 1. Firestore 동기화 수정 시도
+      try {
+        const snapshot = await getDocs(collection(db, "notices"));
+        const targetDoc = snapshot.docs.find(d => String(d.id) === String(editingNotice.id) || String(d.data().id) === String(editingNotice.id));
+        if (targetDoc) {
+          await updateDoc(doc(db, "notices", targetDoc.id), {
+            title: newNotice.title,
+            content: newNotice.content,
+            isPinned: !!newNotice.isPinned
+          });
+        }
+      } catch (fErr) {
+        console.warn("Firestore notice update failed:", fErr);
+      }
+
       const resp = await fetch(`/api/notices/${editingNotice.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -247,6 +372,17 @@ export default function SubAdmin() {
   const handleDeleteNotice = async (id: number) => {
     if (!confirm("공지 전재를 영구 삭제하시겠습니까?")) return;
     try {
+      // 1. Firestore 동기화 삭제 시도
+      try {
+        const snapshot = await getDocs(collection(db, "notices"));
+        const targetDoc = snapshot.docs.find(d => String(d.id) === String(id) || String(d.data().id) === String(id));
+        if (targetDoc) {
+          await deleteDoc(doc(db, "notices", targetDoc.id));
+        }
+      } catch (fErr) {
+        console.warn("Firestore notice delete failed:", fErr);
+      }
+
       const resp = await fetch(`/api/notices/${id}`, {
         method: "DELETE"
       });
@@ -362,6 +498,17 @@ export default function SubAdmin() {
   const handleDeleteDiagnose = async (id: string) => {
     if (!confirm("해당 AI 자가진단 기록을 관리 전산망에서 영구 삭제하시겠습니까?")) return;
     try {
+      // 통상적인 Firestore 동기화 삭제 시도
+      try {
+        const snapshot = await getDocs(collection(db, "diagnoses"));
+        const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
+        if (targetDoc) {
+          await deleteDoc(doc(db, "diagnoses", targetDoc.id));
+        }
+      } catch (fErr) {
+        console.warn("Firestore delete issue, continuing via Express API:", fErr);
+      }
+
       const resp = await fetch(`/api/diagnoses/${id}`, {
         method: "DELETE"
       });
@@ -397,6 +544,24 @@ export default function SubAdmin() {
       if (resp.ok) {
         const data = await resp.json();
         if (data.diagnosis) {
+          // Firestore 동기화 추가
+          try {
+            await addDoc(collection(db, "diagnoses"), {
+              id: String(data.diagnosis.id),
+              sleep: data.diagnosis.sleep || "",
+              eat: data.diagnosis.eat || "",
+              poop: data.diagnosis.poop || "",
+              age: data.diagnosis.age || "",
+              gender: data.diagnosis.gender || "",
+              symptoms: data.diagnosis.symptoms || "",
+              createdAt: data.diagnosis.createdAt || new Date().toISOString(),
+              analysis: data.diagnosis.analysis || "",
+              doctorNotes: data.diagnosis.doctorNotes || ""
+            });
+          } catch (fErr) {
+            console.warn("Firestore diagnosis write failed on manual admin add:", fErr);
+          }
+          
           setDiagnoses(prev => [data.diagnosis, ...prev]);
         } else {
           loadAllData();
@@ -418,6 +583,70 @@ export default function SubAdmin() {
       setAddDiagError("네트워크 서버 통신에 실패했습니다.");
     } finally {
       setAddDiagLoading(false);
+    }
+  };
+
+  const handleStartEditDiag = (item: DiagnoseItem) => {
+    setEditingDiag(item);
+    setEditDiagAge(item.age || "40대");
+    setEditDiagGender(item.gender || "여성");
+    setEditDiagSleep(item.sleep || "");
+    setEditDiagEat(item.eat || "");
+    setEditDiagPoop(item.poop || "");
+    setEditDiagSymptoms(item.symptoms || "");
+    setEditDiagAnalysis(item.analysis || "");
+    setEditDiagDoctorNotes(item.doctorNotes || "");
+    setEditDiagError("");
+  };
+
+  const handleUpdateDiag = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingDiag) return;
+    setEditDiagError("");
+    setEditDiagLoading(true);
+
+    const updatedFields = {
+      age: editDiagAge,
+      gender: editDiagGender,
+      sleep: editDiagSleep,
+      eat: editDiagEat,
+      poop: editDiagPoop,
+      symptoms: editDiagSymptoms,
+      analysis: editDiagAnalysis,
+      doctorNotes: editDiagDoctorNotes
+    };
+
+    try {
+      // 1. Try Firestore Sync update
+      try {
+        const snapshot = await getDocs(collection(db, "diagnoses"));
+        const targetDoc = snapshot.docs.find(d => d.id === editingDiag.id || String(d.data().id) === editingDiag.id);
+        if (targetDoc) {
+          await updateDoc(doc(db, "diagnoses", targetDoc.id), updatedFields);
+        }
+      } catch (fErr) {
+        console.warn("Firestore update issue, continuing via Express API:", fErr);
+      }
+
+      // 2. Call Express endpoint to update records in-memory
+      const resp = await fetch(`/api/diagnoses/${editingDiag.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedFields)
+      });
+
+      if (resp.ok) {
+        setDiagnoses(prev => prev.map(item => item.id === editingDiag.id ? { ...item, ...updatedFields } : item));
+        setEditingDiag(null);
+      } else {
+        const errData = await resp.json();
+        setEditDiagError(errData.error || "자가진단 수정 저장에 실패했습니다.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setEditDiagError("서버와의 통신 오류가 발생했습니다.");
+    } finally {
+      setEditDiagLoading(false);
     }
   };
 
@@ -1082,6 +1311,18 @@ export default function SubAdmin() {
                                 {isExpanded ? "상세접기" : "진단서보기"}
                               </button>
 
+                              {/* 수정 버튼 */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartEditDiag(item);
+                                }}
+                                className="p-1.5 hover:bg-amber-50 text-amber-500 hover:text-amber-600 border border-transparent hover:border-amber-100 rounded-lg cursor-pointer transition-colors"
+                                title="진단서 수동 편집"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+
                               {/* 삭제 버튼 */}
                               <button
                                 onClick={(e) => {
@@ -1450,6 +1691,189 @@ export default function SubAdmin() {
                   신규 사진 추가
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 자가진단 항목 개별 수정 모달 */}
+      {editingDiag && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-fadeIn">
+          <div className="w-full max-w-2xl bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 sm:p-8 relative text-left font-sans max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            
+            <button
+              onClick={() => setEditingDiag(null)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                <Pencil className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-[#2A2826] font-sans">
+                  자가진단 기록 수동 변경
+                </h3>
+                <p className="text-[11px] text-[#7A7571] mt-0.5 font-sans">
+                  환우의 인적 사항, 삼잘 상태 및 원장의 피드백 소견을 직접 보완하거나 정정할 수 있습니다.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdateDiag} className="space-y-5">
+              
+              {/* 연령 및 성별 구성 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                    연령 분류 (Age Group) *
+                  </label>
+                  <select
+                    value={editDiagAge}
+                    onChange={(e) => setEditDiagAge(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans"
+                  >
+                    <option value="10대">10대 이하</option>
+                    <option value="20대">20대</option>
+                    <option value="30대">30대</option>
+                    <option value="40대">40대</option>
+                    <option value="50대">50대</option>
+                    <option value="60대 이상">60대 이상</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                    성별 구분 (Gender) *
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["여성", "남성"].map((g) => (
+                      <button
+                        type="button"
+                        key={g}
+                        onClick={() => setEditDiagGender(g)}
+                        className={`py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          editDiagGender === g
+                            ? "bg-[#0F2C59] text-white border-[#0F2C59]"
+                            : "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 삼잘 상태 일람 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                    수면 상태 (Sleep)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDiagSleep}
+                    onChange={(e) => setEditDiagSleep(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans"
+                    placeholder="수면 세부 양상"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                    식사 상태 (Eat)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDiagEat}
+                    onChange={(e) => setEditDiagEat(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans"
+                    placeholder="식사 세부 양상"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                    배변 상태 (Poop)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDiagPoop}
+                    onChange={(e) => setEditDiagPoop(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans"
+                    placeholder="배변 세부 양상"
+                  />
+                </div>
+              </div>
+
+              {/* 주요 불편 증상 */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                  직접 진술한 증상 (Symptoms)
+                </label>
+                <textarea
+                  rows={2}
+                  value={editDiagSymptoms}
+                  onChange={(e) => setEditDiagSymptoms(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-none"
+                  placeholder="증상을 입력해 주십시오"
+                />
+              </div>
+
+              {/* 진단서 내용 */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
+                  AI 1차 자가진단 분석 결과 (MD / Markdown 지원)
+                </label>
+                <textarea
+                  rows={5}
+                  value={editDiagAnalysis}
+                  onChange={(e) => setEditDiagAnalysis(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] leading-relaxed resize-y"
+                  placeholder="진단서 마크다운을 수정하십시오"
+                />
+              </div>
+
+              {/* 삼잘 처방 소견 */}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                  원장 보완 처방 및 후속 소견 (Doctor Notes)
+                </label>
+                <textarea
+                  rows={3}
+                  value={editDiagDoctorNotes}
+                  onChange={(e) => setEditDiagDoctorNotes(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-y"
+                  placeholder="원장 회람 처방을 작성하십시오"
+                />
+              </div>
+
+              {editDiagError && (
+                <div className="text-center text-xs text-red-500 font-bold py-1 bg-red-50 rounded-lg">
+                  {editDiagError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingDiag(null)}
+                  className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center"
+                >
+                  취소하기
+                </button>
+                <button
+                  type="submit"
+                  disabled={editDiagLoading}
+                  className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md shadow-blue-950/10 cursor-pointer text-center"
+                >
+                  {editDiagLoading ? "수정 내용 저장 중..." : "진단기록 수정 완료"}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>
