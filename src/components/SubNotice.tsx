@@ -145,7 +145,7 @@ export default function SubNotice() {
               <span className="col-span-1 text-center font-semibold">번호</span>
               <span className="col-span-7 pl-4 font-semibold">제목</span>
               <span className="col-span-2 text-center font-semibold">등록일</span>
-              <span className="col-span-2 text-center font-semibold">조회수</span>
+              <span className="col-span-2 text-center font-semibold text-center">조회수</span>
             </div>
             <div className="divide-y divide-slate-100 border-b border-slate-200">
               {(notices || []).map((n, idx) => (
