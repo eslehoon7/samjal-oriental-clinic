@@ -435,6 +435,7 @@ export default function SubAdmin() {
         desc: newPhotoDesc,
         image: imageUrl,
         storagePath: `site-images/gallery/${fileName}`,  // 삭제 시 사용
+        branch: newPhotoBranch,
         createdAt: new Date().toISOString(),
       });
 
