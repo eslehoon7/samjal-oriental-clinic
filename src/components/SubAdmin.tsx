@@ -42,6 +42,7 @@ export default function SubAdmin() {
   const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);       // ← File 객체로 변경
   const [newPhotoPreview, setNewPhotoPreview] = useState("");                // ← 미리보기용 별도 state
   const [newPhotoTagLabel, setNewPhotoTagLabel] = useState("원내 인증 전경");
+  const [newPhotoBranch, setNewPhotoBranch] = useState("both");
   const [photoAddError, setPhotoAddError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);              // ← 업로드 중 상태 추가
 
