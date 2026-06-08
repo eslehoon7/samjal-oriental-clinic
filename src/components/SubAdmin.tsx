@@ -448,6 +448,7 @@ export default function SubAdmin() {
         desc: newPhotoDesc,
         image: imageUrl,
         storagePath: `site-images/gallery/${fileName}`,
+        branch: newPhotoBranch,
         createdAt: new Date().toISOString(),
       };
       setPhotos(prev => [newItem, ...prev]);
@@ -458,6 +459,7 @@ export default function SubAdmin() {
       setNewPhotoFile(null);
       setNewPhotoPreview("");
       setNewPhotoTagLabel("원내 인증 전경");
+      setNewPhotoBranch("both");
       setPhotoAddError("");
       setIsAddPhotoOpen(false);
     } catch (err) {
@@ -1048,7 +1050,8 @@ export default function SubAdmin() {
                 <span className="text-[10px] font-bold text-[#0F2C59] uppercase tracking-widest block">Media Register</span>
                 <h3 className="text-lg font-extrabold text-slate-800">신규 원내 전경 사진 기재</h3>
               </div>
-              <button onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setPhotoAddError(""); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
+              <button onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setNewPhotoBranch("both"); setPhotoAddError(""); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
+              
             </div>
 
             <form onSubmit={handleAddPhotoSubmit} className="space-y-5">
@@ -1070,6 +1073,31 @@ export default function SubAdmin() {
                   </label>
                 )}
               </div>
+              <div>
+                <label className="block text-xs font-bold text-[#475569] mb-1.5">
+                  해당 지점 *
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: "nowon", label: "노원점" },
+                    { value: "guri", label: "구리점" },
+                    { value: "both", label: "공통 (양 지점)" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setNewPhotoBranch(opt.value)}
+                      className={`flex-1 py-2 text-center rounded-xl font-bold transition-all border text-xs cursor-pointer ${
+                        newPhotoBranch === opt.value
+                          ? "bg-[#0F2C59] text-white border-[#0F2C59]"
+                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div>
                 <label className="block text-xs font-bold text-[#475569] mb-1.5">구분 꼬리표 (Tag) *</label>
@@ -1089,7 +1117,7 @@ export default function SubAdmin() {
               )}
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setPhotoAddError(""); }} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
+                <button type="button" onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setNewPhotoBranch("both"); setPhotoAddError(""); }} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
                 <button type="submit" disabled={photoUploading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center disabled:opacity-60 disabled:cursor-not-allowed">
                   {photoUploading ? "업로드 중..." : "신규 사진 추가"}
                 </button>
