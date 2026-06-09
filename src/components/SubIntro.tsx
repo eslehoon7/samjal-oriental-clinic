@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { Award, Star, Compass, CalendarCheck, ShieldCheck, GraduationCap, Beaker, Sparkles, BookOpen } from "lucide-react";
 
 interface SubIntroProps {
@@ -6,7 +9,51 @@ interface SubIntroProps {
   setActiveTab: (tab: string) => void;
 }
 
+const defaultActivities = [
+  {
+    id: "default-activity-1",
+    year: "2024",
+    title: "2024 파리 올림픽",
+    subtitle: "패럴림픽 국가대표팀 주치의",
+    desc: "프랑스 파리 현지 국가대표 한방의학 지원단으로 임명되어 양궁, 사격 등 태극 마크 금메달 주역 종목 전담 한의약 의료팀 대표 주치의 세션을 전담해 직접 임상 진료를 펼쳤습니다.",
+    image: "/images/clinic_interior_modern_1780495390125.png",
+    order: 2,
+    createdAt: "2024-01-01T00:00:00.000Z"
+  },
+  {
+    id: "default-activity-2",
+    year: "2020",
+    title: "2020 도쿄 올림픽",
+    subtitle: "패럴림픽 국가대표팀 주치의",
+    desc: "조정, 육상 대한민국 대표팀 전임 전담 침치료 및 상하지 피로 부상 복구 세션을 성공적으로 수행하며 경기력 유지 및 집중 제어에 강력히 기여하였습니다.",
+    image: "/images/samjal_crew_professional_1780495405627.png",
+    order: 1,
+    createdAt: "2020-01-01T00:00:00.000Z"
+  }
+];
+
 export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroProps) {
+  const [activities, setActivities] = useState<any[]>(defaultActivities);
+
+  useEffect(() => {
+    const q = query(collection(db, "activities"), orderBy("order", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        setActivities(defaultActivities);
+        return;
+      }
+      const fetched = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setActivities(fetched);
+    }, (err) => {
+      console.warn("Error fetching activities:", err);
+      setActivities(defaultActivities);
+    });
+
+    return () => unsubscribe();
+  }, []);
   
   const subTabs = [
     { id: "philosophy", label: "진료철학" },
@@ -394,77 +441,82 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 
                 <div className="space-y-24 relative z-10">
                   
-                  {/* Row 1: 2024 파리 올림픽 (왼쪽 이미지, 오른쪽 텍스트) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center relative">
-                    
-                    {/* 이미지 카드 (왼쪽) */}
-                    <div className="flex md:justify-end order-1 pl-12 md:pl-0 w-full">
-                      <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                        <img
-                          src="/images/clinic_interior_modern_1780495390125.png"
-                          alt="2024 파리 올림픽 대외활동"
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
+                  {activities.map((act, index) => {
+                    const isEven = index % 2 === 0;
+                    return (
+                      <div key={act.id || index} className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center relative">
+                        {isEven ? (
+                          <>
+                            {/* 이미지 카드 (왼쪽) */}
+                            <div className="flex md:justify-end order-1 pl-12 md:pl-0 w-full">
+                              <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                                <img
+                                  src={act.image || "/images/clinic_interior_modern_1780495390125.png"}
+                                  alt={act.title}
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* 중앙 타임라인 도트 (절대 위치) */}
+                            <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                              <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
+                                <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                              </div>
+                            </div>
+                            
+                            {/* 텍스트 컨텐츠 (오른쪽) */}
+                            <div className="space-y-2.5 order-2 pl-12 md:pl-0">
+                              <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
+                                {act.title}
+                              </h4>
+                              <p className="text-slate-500 font-sans text-sm sm:text-base tracking-wide">
+                                {act.subtitle}
+                              </p>
+                              <p className="text-sm font-sans text-slate-600 leading-relaxed max-w-sm pt-2 text-left">
+                                {act.desc}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* 텍스트 컨텐츠 (왼쪽) */}
+                            <div className="space-y-2.5 order-2 md:order-1 text-left md:text-right pl-12 md:pl-0">
+                              <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
+                                {act.title}
+                              </h4>
+                              <p className="text-slate-500 font-sans text-sm sm:text-base tracking-wide">
+                                {act.subtitle}
+                              </p>
+                              <p className="text-sm font-sans text-slate-600 leading-relaxed max-w-sm md:ml-auto pt-2 text-left md:text-right">
+                                {act.desc}
+                              </p>
+                            </div>
+                            
+                            {/* 중앙 타임라인 도트 (절대 위치) */}
+                            <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                              <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
+                                <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                              </div>
+                            </div>
+                            
+                            {/* 이미지 카드 (오른쪽) */}
+                            <div className="flex md:justify-start order-1 md:order-2 pl-12 md:pl-0 w-full">
+                              <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                                <img
+                                  src={act.image || "/images/samjal_crew_professional_1780495405627.png"}
+                                  alt={act.title}
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    </div>
-                    
-                    {/* 중앙 타임라인 도트 (절대 위치) */}
-                    <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
-                      <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
-                        <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
-                      </div>
-                    </div>
-                    
-                    {/* 텍스트 컨텐츠 (오른쪽) */}
-                    <div className="space-y-2.5 order-2 pl-12 md:pl-0">
-                      <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
-                        2024 파리 올림픽
-                      </h4>
-                      <p className="text-slate-500 font-sans text-sm sm:text-base tracking-wide">
-                        패럴림픽 국가대표팀 주치의
-                      </p>
-                      <p className="text-sm font-sans text-slate-600 leading-relaxed max-w-sm pt-2">
-                        프랑스 파리 현지 국가대표 한방의학 지원단으로 임명되어 양궁, 사격 등 태극 마크 금메달 주역 종목 전담 한의약 의료팀 대표 주치의 세션을 전담해 직접 임상 진료를 펼쳤습니다.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Row 2: 2020 도쿄 올림픽 (왼쪽 텍스트, 오른쪽 이미지) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center relative">
-                    
-                    {/* 텍스트 컨텐츠 (왼쪽) */}
-                    <div className="space-y-2.5 order-2 md:order-1 text-left md:text-right pl-12 md:pl-0">
-                      <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
-                        2020 도쿄 올림픽
-                      </h4>
-                      <p className="text-slate-500 font-sans text-sm sm:text-base tracking-wide">
-                        패럴림픽 국가대표팀 주치의
-                      </p>
-                      <p className="text-sm font-sans text-slate-600 leading-relaxed max-w-sm md:ml-auto pt-2">
-                        조정, 육상 대한민국 대표팀 전임 전담 침치료 및 상하지 피로 부상 복구 세션을 성공적으로 수행하며 경기력 유지 및 집중 제어에 강력히 기여하였습니다.
-                      </p>
-                    </div>
-                    
-                    {/* 중앙 타임라인 도트 (절대 위치) */}
-                    <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
-                      <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
-                        <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
-                      </div>
-                    </div>
-                    
-                    {/* 이미지 카드 (오른쪽) */}
-                    <div className="flex md:justify-start order-1 md:order-2 pl-12 md:pl-0 w-full">
-                      <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                        <img
-                          src="/images/samjal_crew_professional_1780495405627.png"
-                          alt="2020 도쿄 올림픽 주치의 활동"
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
 
                 </div>
               </div>

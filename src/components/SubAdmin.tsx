@@ -14,11 +14,12 @@ export default function SubAdmin() {
   const [loginPw, setLoginPw] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses">("notices");
+  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "activities">("notices");
   
   // States
   const [notices, setNotices] = useState<Notice[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [diagnoses, setDiagnoses] = useState<DiagnoseItem[]>([]);
   
   const [noticeLoading, setNoticeLoading] = useState(false);
@@ -29,6 +30,25 @@ export default function SubAdmin() {
   const [newNotice, setNewNotice] = useState({ title: "", content: "", isPinned: false });
   const [noticeMessage, setNoticeMessage] = useState("");
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+
+  // Activities States
+  const [editingActivity, setEditingActivity] = useState<any | null>(null);
+  const [activityEditTitle, setActivityEditTitle] = useState("");
+  const [activityEditSubtitle, setActivityEditSubtitle] = useState("");
+  const [activityEditDesc, setActivityEditDesc] = useState("");
+  const [activityEditYear, setActivityEditYear] = useState("");
+  const [activityEditOrder, setActivityEditOrder] = useState(1);
+
+  const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
+  const [newActivityTitle, setNewActivityTitle] = useState("");
+  const [newActivitySubtitle, setNewActivitySubtitle] = useState("");
+  const [newActivityDesc, setNewActivityDesc] = useState("");
+  const [newActivityYear, setNewActivityYear] = useState("");
+  const [newActivityOrder, setNewActivityOrder] = useState(1);
+  const [newActivityFile, setNewActivityFile] = useState<File | null>(null);
+  const [newActivityPreview, setNewActivityPreview] = useState("");
+  const [activityAddError, setActivityAddError] = useState("");
+  const [activityUploading, setActivityUploading] = useState(false);
 
   // Photos Edit Form
   const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
@@ -129,6 +149,20 @@ export default function SubAdmin() {
     }
   };
 
+  // ──────────────────────────────────────────────
+  // 대외활동 목록 Firestore에서 불러오기
+  // ──────────────────────────────────────────────
+  const loadActivities = async () => {
+    try {
+      const snap = await getDocs(collection(db, "activities"));
+      const list = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      list.sort((a: any, b: any) => (b.order ?? 0) - (a.order ?? 0));
+      setActivities(list);
+    } catch (err) {
+      console.warn("대외활동 로드 실패 (Firestore):", err);
+    }
+  };
+
   // Load Data
   const loadAllData = async () => {
     setNoticeLoading(true);
@@ -208,6 +242,9 @@ export default function SubAdmin() {
       } else {
         await loadPhotos();
       }
+
+      // Activities
+      await loadActivities();
 
       // Diagnoses
       let diagList: DiagnoseItem[] = [];
@@ -614,6 +651,170 @@ export default function SubAdmin() {
     }
   };
 
+  // ──────────────────────────────────────────────
+  // 대외활동 관련 — Firebase Storage + Firestore 기반
+  // ──────────────────────────────────────────────
+
+  const handleNewActivityUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setActivityAddError("이미지 크기는 최대 5MB까지 업로드 가능합니다.");
+        return;
+      }
+      setActivityAddError("");
+      setNewActivityFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setNewActivityPreview(previewUrl);
+    }
+  };
+
+  const handleAddActivitySubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newActivityTitle || !newActivityDesc || !newActivityYear) {
+      setActivityAddError("연도, 제목, 설명을 모두 입력해 주십시오.");
+      return;
+    }
+
+    setActivityUploading(true);
+    setActivityAddError("");
+
+    try {
+      let imageUrl = "";
+      let storagePath = "";
+
+      if (newActivityFile) {
+        const compressedBase64 = await compressImageFile(newActivityFile, 1000, 1000, 0.8);
+        try {
+          const uploadResp = await fetch("/api/photos/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileData: compressedBase64,
+              fileName: newActivityFile.name
+            })
+          });
+
+          if (uploadResp.ok) {
+            const uploadResult = await uploadResp.json();
+            imageUrl = uploadResult.imageUrl;
+            storagePath = uploadResult.storagePath;
+          } else {
+            throw new Error("Server storage upload route failed");
+          }
+        } catch (srvErr) {
+          console.warn("서버 업로드 실패, 브라우저 직접 업로드 시도:", srvErr);
+          try {
+            const fileName = `${Date.now()}_${newActivityFile.name}`;
+            const storageRef = ref(storage, `site-images/activities/${fileName}`);
+            const compressedBlob = base64ToBlob(compressedBase64);
+            await uploadBytes(storageRef, compressedBlob);
+            imageUrl = await getDownloadURL(storageRef);
+            storagePath = `site-images/activities/${fileName}`;
+          } catch (clientErr) {
+            console.warn("직접 업로드 실패, Base64 직접 탑재:", clientErr);
+            imageUrl = compressedBase64;
+            storagePath = "inline-fallback-base64";
+          }
+        }
+      } else {
+        imageUrl = "/images/clinic_interior_modern_1780495390125.png";
+      }
+
+      const docRef = await addDoc(collection(db, "activities"), {
+        title: newActivityTitle,
+        subtitle: newActivitySubtitle || "대표 주치의 활동",
+        desc: newActivityDesc,
+        year: newActivityYear,
+        order: Number(newActivityOrder || 1),
+        image: imageUrl,
+        storagePath: storagePath,
+        createdAt: new Date().toISOString()
+      });
+
+      const newItem = {
+        firestoreId: docRef.id,
+        title: newActivityTitle,
+        subtitle: newActivitySubtitle || "대표 주치의 활동",
+        desc: newActivityDesc,
+        year: newActivityYear,
+        order: Number(newActivityOrder || 1),
+        image: imageUrl,
+        storagePath: storagePath,
+        createdAt: new Date().toISOString()
+      };
+
+      setActivities(prev => [newItem, ...prev].sort((a, b) => b.order - a.order));
+
+      // Reset
+      setNewActivityTitle("");
+      setNewActivitySubtitle("");
+      setNewActivityDesc("");
+      setNewActivityYear("");
+      setNewActivityOrder(1);
+      setNewActivityFile(null);
+      setNewActivityPreview("");
+      setIsAddActivityOpen(false);
+    } catch (err: any) {
+      console.error("대외활동 업로드 실패:", err);
+      setActivityAddError(`대외활동 업로드 실패: ${err.message || err}`);
+    } finally {
+      setActivityUploading(false);
+    }
+  };
+
+  const handleUpdateActivitySubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingActivity) return;
+    if (!activityEditTitle || !activityEditDesc || !activityEditYear) {
+      alert("연도, 제목, 설명을 모두 채워주십시오.");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "activities", editingActivity.firestoreId), {
+        title: activityEditTitle,
+        subtitle: activityEditSubtitle,
+        desc: activityEditDesc,
+        year: activityEditYear,
+        order: Number(activityEditOrder || 1),
+      });
+
+      setActivities(prev => prev.map(act => act.firestoreId === editingActivity.firestoreId ? {
+        ...act,
+        title: activityEditTitle,
+        subtitle: activityEditSubtitle,
+        desc: activityEditDesc,
+        year: activityEditYear,
+        order: Number(activityEditOrder || 1),
+      } : act).sort((a, b) => b.order - a.order));
+
+      setEditingActivity(null);
+    } catch (err) {
+      console.error("대외활동 수정 실패:", err);
+      alert("대외활동 수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteActivity = async (firestoreId: string, storagePath: string) => {
+    if (!confirm("이 대외활동 기록을 정말 영구 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, "activities", firestoreId));
+      if (storagePath && storagePath !== "inline-fallback-base64") {
+        try {
+          const fileRef = ref(storage, storagePath);
+          await deleteObject(fileRef);
+        } catch (storageErr) {
+          console.warn("Storage 파일 삭제 실패 (무시):", storageErr);
+        }
+      }
+      setActivities(prev => prev.filter(a => a.firestoreId !== firestoreId));
+    } catch (err) {
+      console.error("대외활동 삭제 실패:", err);
+      alert("삭제 실패했습니다.");
+    }
+  };
+
   // 사진 정보 편집 (제목/설명/지점 수정 — Firestore 업데이트)
   const handleEditPhoto = (photo: any) => {
     setEditingPhoto(photo);
@@ -876,6 +1077,9 @@ export default function SubAdmin() {
           <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Image className="w-4 h-4" /><span>인테리어 롤링 관리 ({photos.length})</span>
           </button>
+          <button onClick={() => setActiveSubTab("activities")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "activities" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+            <Sparkles className="w-4 h-4" /><span>대외활동 관리 ({activities.length})</span>
+          </button>
           <button onClick={() => setActiveSubTab("diagnoses")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "diagnoses" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Activity className="w-4 h-4" /><span>자가진단 기록 ({diagnoses.length})</span>
           </button>
@@ -1007,6 +1211,305 @@ export default function SubAdmin() {
             <p className="text-center text-[10.5px] text-slate-400 mt-8">
               ※ 해당 전산망은 Firebase Cloud Storage와 실시간 동기화되어 있으며, 변경 즉시 홈페이지 전면에 반영됩니다.
             </p>
+          </div>
+        )}
+
+        {/* 대외활동 관리 탭 */}
+        {activeSubTab === "activities" && (
+          <div className="space-y-6 animate-fadeIn text-left">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm relative text-left">
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+              
+              <div className="space-y-1 mb-6 pb-3 border-b border-slate-100 pr-16 sm:pr-24 relative">
+                <div className="absolute top-1 right-1 sm:right-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddActivityOpen(!isAddActivityOpen);
+                      setEditingActivity(null);
+                    }}
+                    className="px-3.5 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-sans font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    {isAddActivityOpen ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                    <span>{isAddActivityOpen ? "닫기" : "신규 추가"}</span>
+                  </button>
+                </div>
+                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-wider block">External Activities & Timeline Management</span>
+                <h3 className="text-lg font-sans font-extrabold text-slate-800">삼잘 대외활동 주치의 연혁 마스터</h3>
+                <p className="text-xs font-sans text-slate-500 leading-relaxed">삼잘한의원 소개 페이지에 연출되는 국가대표 주치의 활동, 올림픽 지원 등 대외활동 이미지를 동적으로 등록하고 순서를 제어합니다.</p>
+              </div>
+
+              {/* 신규 대외활동 등록 슬라이드다운 폼 */}
+              {isAddActivityOpen && (
+                <div className="mb-6 p-5 sm:p-6 bg-slate-50 border border-slate-200 rounded-2xl animate-slideDown">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-4">
+                    <h4 className="text-sm font-extrabold text-[#2A2826] font-sans flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#0F2C59]" />
+                      <span>신규 대외활동 내역 게재</span>
+                    </h4>
+                  </div>
+                  {activityAddError && (
+                    <p className="p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-sans mb-4">{activityAddError}</p>
+                  )}
+                  <form onSubmit={handleAddActivitySubmit} className="space-y-4 font-sans text-xs sm:text-sm text-slate-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">연도 *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="예: 2024"
+                          value={newActivityYear}
+                          onChange={(e) => setNewActivityYear(e.target.value)}
+                          className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">정렬 우선순위(Order) *</label>
+                        <input
+                          type="number"
+                          required
+                          placeholder="높을수록 최상단 노출 (예: 5)"
+                          value={newActivityOrder}
+                          onChange={(e) => setNewActivityOrder(Number(e.target.value))}
+                          className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">지점 및 역할 문명 (제목 상단 표시) *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="예: 노원점, 구리점 또는 대외활동 역할"
+                          value={newActivitySubtitle}
+                          onChange={(e) => setNewActivitySubtitle(e.target.value)}
+                          className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/10"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">대외활동 제목 *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="예: 2024 파리 올림픽"
+                        value={newActivityTitle}
+                        onChange={(e) => setNewActivityTitle(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">세부 활동 내역 설명 *</label>
+                      <textarea
+                        rows={3}
+                        required
+                        placeholder="국가대표 한방의학 지원단으로 임명되어 주치의로서 수행한 구체적인 치료 역할과 스토리를 품격있게 서술하십시오."
+                        value={newActivityDesc}
+                        onChange={(e) => setNewActivityDesc(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none resize-none leading-relaxed"
+                      />
+                    </div>
+
+                    {/* 사진 업로드 인터페이스 */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-600 mb-1">대표 현장 사진 업로드</label>
+                      <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="w-full max-w-xs aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center relative">
+                          {newActivityPreview ? (
+                            <img src={newActivityPreview} alt="Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-center p-4">
+                              <Image className="w-8 h-8 text-slate-400 mx-auto mb-1" />
+                              <span className="text-[11px] text-slate-400 block font-bold">이미지 미리보기</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 w-full text-center sm:text-left">
+                          <label className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:border-[#0F2C59] bg-white text-[#0F2C59] hover:bg-slate-50 text-xs font-semibold rounded-lg cursor-pointer transition-all">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>대외활동 사진 선택</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleNewActivityUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                            권장 규격: 16:10 비율 가로형 이미지, 최대 5MB까지 수용<br />
+                            ※ 사진 미등록 시 기본 병원 현대식 원내 전경 이미지가 자동 배정됩니다.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        disabled={activityUploading}
+                        className="px-6 py-2.5 bg-[#0F2C59] hover:bg-slate-800 disabled:bg-slate-300 text-white font-sans text-xs sm:text-sm font-bold tracking-tight rounded-xl cursor-pointer transition-all"
+                      >
+                        {activityUploading ? "업로드 및 저장 중..." : "대외활동 내역 저장하기"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* 편집 폼 (인라인) */}
+              {editingActivity && (
+                <div className="mb-6 p-5 sm:p-6 bg-amber-50/50 border border-amber-200 rounded-2xl animate-scaleUp text-left">
+                  <div className="flex items-center justify-between pb-3 border-b border-amber-200/60 mb-4">
+                    <h4 className="text-sm font-extrabold text-[#78350F] font-sans flex items-center gap-1.5">
+                      <Pencil className="w-4 h-4" />
+                      <span>대외활동 세부 조절 및 지점 문구 수정</span>
+                    </h4>
+                    <button type="button" onClick={() => setEditingActivity(null)} className="p-1 text-amber-500 hover:text-amber-700 rounded-lg cursor-pointer"><X className="w-4 h-4" /></button>
+                  </div>
+                  <form onSubmit={handleUpdateActivitySubmit} className="space-y-4 font-sans text-xs sm:text-sm text-slate-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-amber-800 mb-1">연도 *</label>
+                        <input
+                          type="text"
+                          required
+                          value={activityEditYear}
+                          onChange={(e) => setActivityEditYear(e.target.value)}
+                          className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-amber-800 mb-1">정렬 순위(Order) *</label>
+                        <input
+                          type="number"
+                          required
+                          value={activityEditOrder}
+                          onChange={(e) => setActivityEditOrder(Number(e.target.value))}
+                          className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-amber-800 mb-1">지점 및 역할 문명 (제목 상단 표시) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={activityEditSubtitle}
+                          onChange={(e) => setActivityEditSubtitle(e.target.value)}
+                          placeholder="예: 노원점, 구리점 또는 대외활동 역할"
+                          className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 mb-1">대외활동 제목 *</label>
+                      <input
+                        type="text"
+                        required
+                        value={activityEditTitle}
+                        onChange={(e) => setActivityEditTitle(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-amber-800 mb-1">세부 설명 문안 *</label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={activityEditDesc}
+                        onChange={(e) => setActivityEditDesc(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl focus:outline-none resize-none leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        신속 반영하기
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingActivity(null)}
+                        className="px-5 py-2 border border-slate-200 hover:bg-slate-100 text-slate-500 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        편집 보류
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* 현재 활동 리스트 뷰 */}
+              {activities.length === 0 ? (
+                <div className="py-12 text-center bg-slate-50 border border-slate-200/50 rounded-2xl">
+                  <Sparkles className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-slate-400 font-sans">대외활동 연혁이 기입되어 있지 않습니다.</p>
+                  <p className="text-xs text-slate-400 mt-1">상단 [신규 추가]를 눌러 첫 올림픽 주치의 활동 등의 연혁을 등록해 주십시오.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {activities.map((item: any) => (
+                    <div
+                      key={item.firestoreId}
+                      className="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-[16/10] bg-slate-100 border-b border-slate-150">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-[#0F2C59] text-white rounded-md text-[10px] font-sans font-extrabold tracking-wide">
+                          구분: {item.year}년 (순위: {item.order || 1})
+                        </div>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col justify-between text-left">
+                        <div className="space-y-1">
+                          <span className="text-[11px] text-[#0F2C59] font-bold block">{item.subtitle}</span>
+                          <h4 className="text-sm font-extrabold text-slate-800 leading-tight">{item.title}</h4>
+                          <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed pt-1.5">{item.desc}</p>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-1.5 mt-4">
+                          <button
+                            onClick={() => {
+                              setEditingActivity(item);
+                              setActivityEditTitle(item.title);
+                              setActivityEditSubtitle(item.subtitle);
+                              setActivityEditDesc(item.desc);
+                              setActivityEditYear(item.year);
+                              setActivityEditOrder(item.order || 1);
+                              setIsAddActivityOpen(false);
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-slate-600 hover:text-amber-700 rounded-lg text-xs font-sans font-bold cursor-pointer transition-all"
+                            title="연혁 수정"
+                          >
+                            <Pencil className="w-3 h-3" /><span>수정</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteActivity(item.firestoreId, item.storagePath)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200/50 text-rose-600 rounded-lg text-xs font-sans font-bold cursor-pointer transition-all active:scale-95"
+                            title="연혁 삭제"
+                          >
+                            <Trash2 className="w-3 h-3" /><span>삭제</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-center text-[10.5px] text-slate-400 mt-8">
+                ※ 대외활동 관리 내용은 실시간으로 Firebase Cloud database와 동기화되며, &ldquo;삼잘한의원 소개&rdquo; &rarr; &ldquo;대외활동&rdquo; 탭 연혁 카드로 동적 갱신되어 반영됩니다.
+              </p>
+            </div>
           </div>
         )}
 
