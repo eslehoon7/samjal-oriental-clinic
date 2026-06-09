@@ -476,7 +476,6 @@ export default function SubAdmin() {
       reader.readAsDataURL(file);
       reader.onload = (event) => {
         const img = new Image();
-        img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement("canvas");
           let width = img.width;
@@ -507,6 +506,7 @@ export default function SubAdmin() {
           resolve(compressedBase64);
         };
         img.onerror = (err) => reject(err);
+        img.src = event.target?.result as string;
       };
       reader.onerror = (err) => reject(err);
     });

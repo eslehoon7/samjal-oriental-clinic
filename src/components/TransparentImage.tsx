@@ -12,7 +12,6 @@ export default function TransparentImage({ src, alt, className }: TransparentIma
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = src;
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -73,6 +72,8 @@ export default function TransparentImage({ src, alt, className }: TransparentIma
     img.onerror = () => {
       setProcessedSrc(src);
     };
+
+    img.src = src;
   }, [src]);
 
   return (
