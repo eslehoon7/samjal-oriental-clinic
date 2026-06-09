@@ -34,6 +34,7 @@ export default function SubAdmin() {
   const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
   const [photoEditTitle, setPhotoEditTitle] = useState("");
   const [photoEditDesc, setPhotoEditDesc] = useState("");
+  const [photoEditBranch, setPhotoEditBranch] = useState("both");
 
   // Photos Add Form — Firebase Storage 기반으로 변경
   const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
@@ -80,11 +81,15 @@ export default function SubAdmin() {
       setSaveNotesStatus(prev => ({ ...prev, [id]: "저장 중..." }));
       
       try {
-        const snapshot = await getDocs(collection(db, "diagnoses"));
-        const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
-        if (targetDoc) {
-          await updateDoc(doc(db, "diagnoses", targetDoc.id), { doctorNotes: notes });
-        }
+        // Try direct update by ID first (super fast)
+        await updateDoc(doc(db, "diagnoses", id), { doctorNotes: notes }).catch(async () => {
+          // Fallback if document ID is auto-generated (slow path for legacy data)
+          const snapshot = await getDocs(collection(db, "diagnoses"));
+          const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
+          if (targetDoc && targetDoc.id !== id) {
+            await updateDoc(doc(db, "diagnoses", targetDoc.id), { doctorNotes: notes });
+          }
+        });
       } catch (fErr) {
         console.warn("Firestore update issue, continuing via Express API:", fErr);
       }
@@ -145,12 +150,17 @@ export default function SubAdmin() {
         console.warn("Express API diagnoses fetch failed:", err);
         return [];
       });
+      const fsPhotosPromise = getDocs(collection(db, "galleryPhotos")).catch(fErr => {
+        console.warn("Firestore gallery photos fetch failed:", fErr);
+        return null;
+      });
 
-      const [fsNoticesSnap, apiNotices, fsDiagsSnap, apiDiags] = await Promise.all([
+      const [fsNoticesSnap, apiNotices, fsDiagsSnap, apiDiags, fsPhotosSnap] = await Promise.all([
         fsNoticesPromise,
         expressNoticesPromise,
         fsDiagsPromise,
-        expressDiagsPromise
+        expressDiagsPromise,
+        fsPhotosPromise
       ]);
 
       // Notices
@@ -190,8 +200,14 @@ export default function SubAdmin() {
       });
       setNotices(noticesList);
 
-      // 사진은 Firestore에서 별도 로드
-      await loadPhotos();
+      // Photos
+      if (fsPhotosSnap) {
+        const list = fsPhotosSnap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        list.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+        setPhotos(list);
+      } else {
+        await loadPhotos();
+      }
 
       // Diagnoses
       let diagList: DiagnoseItem[] = [];
@@ -288,7 +304,7 @@ export default function SubAdmin() {
       if (resp.ok) {
         const added = await resp.json();
         try {
-          await addDoc(collection(db, "notices"), {
+          await setDoc(doc(db, "notices", String(added.notice.id)), {
             id: String(added.notice.id),
             title: added.notice.title,
             content: added.notice.content,
@@ -326,15 +342,23 @@ export default function SubAdmin() {
     setNoticeLoading(true);
     try {
       try {
-        const snapshot = await getDocs(collection(db, "notices"));
-        const targetDoc = snapshot.docs.find(d => String(d.id) === String(editingNotice.id) || String(d.data().id) === String(editingNotice.id));
-        if (targetDoc) {
-          await updateDoc(doc(db, "notices", targetDoc.id), {
-            title: newNotice.title,
-            content: newNotice.content,
-            isPinned: !!newNotice.isPinned
-          });
-        }
+        // Try direct update by ID first (fast path)
+        await updateDoc(doc(db, "notices", String(editingNotice.id)), {
+          title: newNotice.title,
+          content: newNotice.content,
+          isPinned: !!newNotice.isPinned
+        }).catch(async () => {
+          // Fallback if document ID is legacy random key (slow path)
+          const snapshot = await getDocs(collection(db, "notices"));
+          const targetDoc = snapshot.docs.find(d => String(d.id) === String(editingNotice.id) || String(d.data().id) === String(editingNotice.id));
+          if (targetDoc && targetDoc.id !== String(editingNotice.id)) {
+            await updateDoc(doc(db, "notices", targetDoc.id), {
+              title: newNotice.title,
+              content: newNotice.content,
+              isPinned: !!newNotice.isPinned
+            });
+          }
+        });
       } catch (fErr) {
         console.warn("Firestore notice update failed:", fErr);
       }
@@ -367,11 +391,15 @@ export default function SubAdmin() {
     if (!confirm("공지 전재를 영구 삭제하시겠습니까?")) return;
     try {
       try {
-        const snapshot = await getDocs(collection(db, "notices"));
-        const targetDoc = snapshot.docs.find(d => String(d.id) === String(id) || String(d.data().id) === String(id));
-        if (targetDoc) {
-          await deleteDoc(doc(db, "notices", targetDoc.id));
-        }
+        // Try direct delete by ID first (fast path)
+        await deleteDoc(doc(db, "notices", String(id))).catch(async () => {
+          // Fallback if document ID is legacy random key (slow path)
+          const snapshot = await getDocs(collection(db, "notices"));
+          const targetDoc = snapshot.docs.find(d => String(d.id) === String(id) || String(d.data().id) === String(id));
+          if (targetDoc && targetDoc.id !== String(id)) {
+            await deleteDoc(doc(db, "notices", targetDoc.id));
+          }
+        });
       } catch (fErr) {
         console.warn("Firestore notice delete failed:", fErr);
       }
@@ -404,7 +432,63 @@ export default function SubAdmin() {
     }
   };
 
-  // 사진 추가 — Firebase Storage에 업로드 후 Firestore에 URL 저장
+  // 클라이언트 이미지 파일 압축 (최대 1000px 해상도, 고압축 JPEG 변환)
+  const compressImageFile = (file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  // Base64 문자열을 바이너리 Blob으로 복구
+  const base64ToBlob = (base64: string): Blob => {
+    const parts = base64.split(";base64,");
+    const contentType = parts[0].split(":")[1];
+    const raw = window.atob(parts[1]);
+    const rawLength = raw.length;
+    const uInt8Array = new Uint8Array(rawLength);
+    for (let i = 0; i < rawLength; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+    return new Blob([uInt8Array], { type: contentType });
+  };
+
+  // 사진 추가 — Firebase Storage에 업로드 (서버 우선 시도 후 실패 시 클라이언트 폴백, 전체 불능 시 Base64 직접 탑재) 후 Firestore에 URL 저장
   const handleAddPhotoSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!newPhotoFile) {
@@ -420,27 +504,62 @@ export default function SubAdmin() {
     setPhotoAddError("");
 
     try {
-      // 1. Firebase Storage에 파일 업로드
-      const fileName = `${Date.now()}_${newPhotoFile.name}`;
-      const storageRef = ref(storage, `site-images/gallery/${fileName}`);
-      await uploadBytes(storageRef, newPhotoFile);
+      // 1. 선택한 임시 파일을 1000px급 초경량 JPEG으로 실시간 압축
+      const compressedBase64 = await compressImageFile(newPhotoFile, 1000, 1000, 0.8);
+      
+      let imageUrl = "";
+      let storagePath = "";
 
-      // 2. 다운로드 URL 획득
-      const imageUrl = await getDownloadURL(storageRef);
+      try {
+        // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도 (iframe 및 CORS 차단 우회)
+        const uploadResp = await fetch("/api/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileData: compressedBase64,
+            fileName: newPhotoFile.name
+          })
+        });
 
-      // 3. Firestore에 사진 정보 저장
+        if (uploadResp.ok) {
+          const uploadResult = await uploadResp.json();
+          imageUrl = uploadResult.imageUrl;
+          storagePath = uploadResult.storagePath;
+        } else {
+          throw new Error("Server storage upload route returned non-200 status");
+        }
+      } catch (srvErr) {
+        console.warn("서버 파이프라인 업로드 실패, 브라우저 직접 업로드 폴백 진입:", srvErr);
+        try {
+          // 3. 브라우저 직접 Firebase Storage 업로드 시도 (폴백 장치)
+          const fileName = `${Date.now()}_${newPhotoFile.name}`;
+          const storageRef = ref(storage, `site-images/gallery/${fileName}`);
+          const compressedBlob = base64ToBlob(compressedBase64);
+          await uploadBytes(storageRef, compressedBlob);
+          imageUrl = await getDownloadURL(storageRef);
+          storagePath = `site-images/gallery/${fileName}`;
+        } catch (clientErr) {
+          console.warn("클라이언트 스토리지 업로드도 차단됨. 최종 수단인 인라인 Base64 기입으로 강제 전환합니다:", clientErr);
+          // 4. 스토리지 업로드가 권한/네트워크 등으로 완전 차단되었을 때, 
+          //    압축된 Base64 데이터를 그대로 Firestore 이미지 필드로 저장 (Firestore 1MB 한도 내로 완벽 호환!)
+          imageUrl = compressedBase64;
+          storagePath = "inline-fallback-base64";
+        }
+      }
+
+      // 5. Firestore에 사진 정보 기입 (지점 정보 branch도 추가)
       const docRef = await addDoc(collection(db, "galleryPhotos"), {
         tag: "hospital-added",
         tagLabel: newPhotoTagLabel || "원내 인증 전경",
         title: newPhotoTitle,
         desc: newPhotoDesc,
         image: imageUrl,
-        storagePath: `site-images/gallery/${fileName}`,  // 삭제 시 사용
-        branch: newPhotoBranch,
+        storagePath: storagePath,  // 삭제 시 사용
+        branch: newPhotoBranch || "both",
         createdAt: new Date().toISOString(),
       });
 
-      // 4. 로컬 state 업데이트
+      // 6. 로컬 state 업데이트
       const newItem = {
         firestoreId: docRef.id,
         tag: "hospital-added",
@@ -448,8 +567,8 @@ export default function SubAdmin() {
         title: newPhotoTitle,
         desc: newPhotoDesc,
         image: imageUrl,
-        storagePath: `site-images/gallery/${fileName}`,
-        branch: newPhotoBranch,
+        storagePath: storagePath,
+        branch: newPhotoBranch || "both",
         createdAt: new Date().toISOString(),
       };
       setPhotos(prev => [newItem, ...prev]);
@@ -460,12 +579,11 @@ export default function SubAdmin() {
       setNewPhotoFile(null);
       setNewPhotoPreview("");
       setNewPhotoTagLabel("원내 인증 전경");
-      setNewPhotoBranch("both");
       setPhotoAddError("");
       setIsAddPhotoOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("사진 업로드 실패:", err);
-      setPhotoAddError("사진 업로드에 실패했습니다. 다시 시도해 주십시오.");
+      setPhotoAddError(`사진 업로드 실패: ${err.message || err}`);
     } finally {
       setPhotoUploading(false);
     }
@@ -496,11 +614,12 @@ export default function SubAdmin() {
     }
   };
 
-  // 사진 정보 편집 (제목/설명만 수정 — Firestore 업데이트)
+  // 사진 정보 편집 (제목/설명/지점 수정 — Firestore 업데이트)
   const handleEditPhoto = (photo: any) => {
     setEditingPhoto(photo);
     setPhotoEditTitle(photo.title);
     setPhotoEditDesc(photo.desc);
+    setPhotoEditBranch(photo.branch || "both");
   };
 
   const handleSavePhotoDetails = async (e: FormEvent) => {
@@ -510,10 +629,11 @@ export default function SubAdmin() {
       await updateDoc(doc(db, "galleryPhotos", editingPhoto.firestoreId), {
         title: photoEditTitle,
         desc: photoEditDesc,
+        branch: photoEditBranch,
       });
       setPhotos(prev => prev.map((p: any) =>
         p.firestoreId === editingPhoto.firestoreId
-          ? { ...p, title: photoEditTitle, desc: photoEditDesc }
+          ? { ...p, title: photoEditTitle, desc: photoEditDesc, branch: photoEditBranch }
           : p
       ));
       setEditingPhoto(null);
@@ -531,11 +651,15 @@ export default function SubAdmin() {
     if (!confirm("해당 AI 자가진단 기록을 관리 전산망에서 영구 삭제하시겠습니까?")) return;
     try {
       try {
-        const snapshot = await getDocs(collection(db, "diagnoses"));
-        const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
-        if (targetDoc) {
-          await deleteDoc(doc(db, "diagnoses", targetDoc.id));
-        }
+        // Try direct delete by ID first (fast path)
+        await deleteDoc(doc(db, "diagnoses", id)).catch(async () => {
+          // Fallback if document ID is legacy random key (slow path)
+          const snapshot = await getDocs(collection(db, "diagnoses"));
+          const targetDoc = snapshot.docs.find(d => d.id === id || String(d.data().id) === id);
+          if (targetDoc && targetDoc.id !== id) {
+            await deleteDoc(doc(db, "diagnoses", targetDoc.id));
+          }
+        });
       } catch (fErr) {
         console.warn("Firestore delete issue:", fErr);
       }
@@ -566,7 +690,7 @@ export default function SubAdmin() {
         const data = await resp.json();
         if (data.diagnosis) {
           try {
-            await addDoc(collection(db, "diagnoses"), {
+            await setDoc(doc(db, "diagnoses", String(data.diagnosis.id)), {
               id: String(data.diagnosis.id),
               sleep: data.diagnosis.sleep || "",
               eat: data.diagnosis.eat || "",
@@ -628,11 +752,15 @@ export default function SubAdmin() {
     };
     try {
       try {
-        const snapshot = await getDocs(collection(db, "diagnoses"));
-        const targetDoc = snapshot.docs.find(d => d.id === editingDiag.id || String(d.data().id) === editingDiag.id);
-        if (targetDoc) {
-          await updateDoc(doc(db, "diagnoses", targetDoc.id), updatedFields);
-        }
+        // Try direct update by ID first (fast path)
+        await updateDoc(doc(db, "diagnoses", editingDiag.id), updatedFields).catch(async () => {
+          // Fallback if document ID is legacy random key (slow path)
+          const snapshot = await getDocs(collection(db, "diagnoses"));
+          const targetDoc = snapshot.docs.find(d => d.id === editingDiag.id || String(d.data().id) === editingDiag.id);
+          if (targetDoc && targetDoc.id !== editingDiag.id) {
+            await updateDoc(doc(db, "diagnoses", targetDoc.id), updatedFields);
+          }
+        });
       } catch (fErr) {
         console.warn("Firestore update issue:", fErr);
       }
@@ -855,6 +983,10 @@ export default function SubAdmin() {
                     </div>
                     <div className="p-4 flex-1 flex flex-col justify-between text-left space-y-2">
                       <div>
+                        {/* 제목 위의 소속 지점 표시 추가 */}
+                        <div className="text-[10px] font-sans font-extrabold text-[#0F2C59] mb-1">
+                          {item.branch === "nowon" ? "[노원점 단독]" : item.branch === "guri" ? "[구리점 단독]" : "[공통 (노원/구리)]"}
+                        </div>
                         <h5 className="text-xs sm:text-sm font-sans font-extrabold text-slate-800 truncate">{item.title}</h5>
                         <p className="text-[11px] font-sans text-slate-500 line-clamp-2 leading-relaxed">{item.desc}</p>
                       </div>
@@ -1025,6 +1157,18 @@ export default function SubAdmin() {
                 <img src={editingPhoto.image} alt="Preview" className="w-full h-full object-cover" />
               </div>
               <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">노출 지점 선택 *</label>
+                <select 
+                  value={photoEditBranch} 
+                  onChange={(e) => setPhotoEditBranch(e.target.value)} 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold"
+                >
+                  <option value="both">공통 (노원/구리 전체)</option>
+                  <option value="nowon">노원점 단독</option>
+                  <option value="guri">구리점 단독</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 제목 *</label>
                 <input type="text" required value={photoEditTitle} onChange={(e) => setPhotoEditTitle(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans" />
               </div>
@@ -1051,8 +1195,7 @@ export default function SubAdmin() {
                 <span className="text-[10px] font-bold text-[#0F2C59] uppercase tracking-widest block">Media Register</span>
                 <h3 className="text-lg font-extrabold text-slate-800">신규 원내 전경 사진 기재</h3>
               </div>
-              <button onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setNewPhotoBranch("both"); setPhotoAddError(""); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
-              
+              <button onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setPhotoAddError(""); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
             </div>
 
             <form onSubmit={handleAddPhotoSubmit} className="space-y-5">
@@ -1074,35 +1217,23 @@ export default function SubAdmin() {
                   </label>
                 )}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-[#475569] mb-1.5">
-                  해당 지점 *
-                </label>
-                <div className="flex gap-2">
-                  {[
-                    { value: "nowon", label: "노원점" },
-                    { value: "guri", label: "구리점" },
-                    { value: "both", label: "공통 (양 지점)" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setNewPhotoBranch(opt.value)}
-                      className={`flex-1 py-2 text-center rounded-xl font-bold transition-all border text-xs cursor-pointer ${
-                        newPhotoBranch === opt.value
-                          ? "bg-[#0F2C59] text-white border-[#0F2C59]"
-                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div>
                 <label className="block text-xs font-bold text-[#475569] mb-1.5">구분 꼬리표 (Tag) *</label>
                 <input type="text" required value={newPhotoTagLabel} onChange={(e) => setNewPhotoTagLabel(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold" placeholder="예: 대기실 & 접수데스크, 치료실 등" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#475569] mb-1.5">노출 지점 선택 *</label>
+                <select 
+                  value={newPhotoBranch} 
+                  onChange={(e) => setNewPhotoBranch(e.target.value)} 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold"
+                >
+                  <option value="both">공통 (노원/구리 전체)</option>
+                  <option value="nowon">노원점 단독</option>
+                  <option value="guri">구리점 단독</option>
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 제목 *</label>
@@ -1118,7 +1249,7 @@ export default function SubAdmin() {
               )}
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setNewPhotoBranch("both"); setPhotoAddError(""); }} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
+                <button type="button" onClick={() => { setIsAddPhotoOpen(false); setNewPhotoTitle(""); setNewPhotoDesc(""); setNewPhotoFile(null); setNewPhotoPreview(""); setNewPhotoTagLabel("원내 인증 전경"); setPhotoAddError(""); }} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
                 <button type="submit" disabled={photoUploading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center disabled:opacity-60 disabled:cursor-not-allowed">
                   {photoUploading ? "업로드 중..." : "신규 사진 추가"}
                 </button>

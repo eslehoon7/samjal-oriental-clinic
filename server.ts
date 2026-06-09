@@ -3,11 +3,35 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { initializeApp as initFirebaseApp } from "firebase/app";
+import { getStorage as getFirebaseStorage, ref as storageRef, uploadBytes as uploadBytesToStorage, getDownloadURL as getStorageDownloadURL } from "firebase/storage";
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ limit: "15mb", extended: true }));
+
+// Server-side Firebase Initialization
+const fbApiKey = process.env.VITE_FIREBASE_API_KEY;
+let serverStorage: any = null;
+
+if (fbApiKey) {
+  try {
+    const fbApp = initFirebaseApp({
+      apiKey: fbApiKey,
+      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.VITE_FIREBASE_APP_ID,
+    });
+    serverStorage = getFirebaseStorage(fbApp);
+    console.log("Server-side Firebase Storage initialized successfully.");
+  } catch (err) {
+    console.warn("Failed to initialize server-side Firebase app:", err);
+  }
+}
 
 // 임시 인메모리 예약 저장소 (관리용 데모)
 interface Reservation {
@@ -341,6 +365,46 @@ app.delete("/api/diagnoses/:id", (req, res) => {
   
   diagnoses.splice(index, 1);
   res.json({ success: true });
+});
+
+// 이미지 파일 업로드 프록시 API (CORS 및 iframe 제약 없이 백엔드에서 다이렉트로 Firebase Storage에 업로드)
+app.post("/api/photos/upload", async (req, res) => {
+  try {
+    const { fileData, fileName } = req.body;
+    if (!fileData || !fileName) {
+      return res.status(400).json({ error: "업로드할 파일 데이터 또는 파일 이름이 유실되었습니다." });
+    }
+
+    if (!serverStorage) {
+      return res.status(500).json({ error: "서버가 현재 Firebase Storage 인스턴스를 확보하지 못했습니다." });
+    }
+
+    // Base64 형식 파싱 및 Buffer 변환
+    const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ error: "유효한 Base64 데이터 및 이미지 규격이 아닙니다." });
+    }
+
+    const mimeType = matches[1];
+    const buffer = Buffer.from(matches[2], "base64");
+
+    const finalStoragePath = `site-images/gallery/${Date.now()}_${fileName}`;
+    const fileRef = storageRef(serverStorage, finalStoragePath);
+
+    // Metadata 헤더 지정하여 브라우저에서 다운로드 혹은 스트리밍 시 정상 Content-Type 유지 가능
+    await uploadBytesToStorage(fileRef, buffer, { contentType: mimeType });
+
+    const downloadUrl = await getStorageDownloadURL(fileRef);
+
+    res.json({
+      success: true,
+      imageUrl: downloadUrl,
+      storagePath: finalStoragePath
+    });
+  } catch (error: any) {
+    console.error("서버측 이미지 파일 Storage 업로드 에러:", error);
+    res.status(500).json({ error: "서버 Storage 업로드 중 시스템 오류가 발생했습니다.", details: error.message });
+  }
 });
 
 // Vite 및 정적 리소스 브릿지

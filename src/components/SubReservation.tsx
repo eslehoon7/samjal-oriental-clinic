@@ -192,8 +192,8 @@ export default function SubReservation() {
         if (data.diagnosis) {
           try {
             const { db } = await import("../firebase");
-            const { collection, addDoc } = await import("firebase/firestore");
-            await addDoc(collection(db, "diagnoses"), {
+            const { doc, setDoc } = await import("firebase/firestore");
+            await setDoc(doc(db, "diagnoses", String(data.diagnosis.id)), {
               id: String(data.diagnosis.id),
               sleep: data.diagnosis.sleep || "",
               eat: data.diagnosis.eat || "",

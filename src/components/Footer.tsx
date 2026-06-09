@@ -156,7 +156,15 @@ export default function Footer({ setActiveTab }: FooterProps) {
             <span>|</span>
             <a href="#" className="hover:text-slate-300 transition-colors">의료광고심의준수</a>
             <span>|</span>
-            <a href="#" className="hover:text-slate-300 transition-colors">비급여비용안내</a>
+            <a 
+              href="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/%EA%B3%B5%EC%A7%80%EC%82%AC%ED%95%AD_%EB%B9%84%EA%B8%89%EC%97%AC%EA%B0%80%EA%B2%A9_%EB%85%B8%EC%9B%90.pdf?alt=media&token=5b931263-4aac-4b6a-bded-33de3ad2cd2c" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              download="공지사항_비급여가격_노원.pdf"
+              className="hover:text-slate-300 transition-colors"
+            >
+              비급여비용안내
+            </a>
             <span>|</span>
             <button 
               onClick={() => handleQuickLink("admin")}
