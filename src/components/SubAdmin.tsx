@@ -469,11 +469,28 @@ export default function SubAdmin() {
     }
   };
 
+  // 타임아웃(기본 8초) 기능이 탑재된 fetch 헬퍼 (무한 로딩 및 행 정지 방지 장치)
+  const fetchWithTimeout = async (resource: string, options: RequestInit & { timeout?: number }) => {
+    const { timeout = 8000, ...rest } = options;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(resource, {
+        ...rest,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      return response;
+    } catch (err) {
+      clearTimeout(id);
+      throw err;
+    }
+  };
+
   // 클라이언트 이미지 파일 압축 (최대 1000px 해상도, 고압축 JPEG 변환)
   const compressImageFile = (file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.85): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
@@ -509,6 +526,7 @@ export default function SubAdmin() {
         img.src = event.target?.result as string;
       };
       reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file); // 리스너 바인딩 이후 최종 트리거 실행
     });
   };
 
@@ -548,14 +566,15 @@ export default function SubAdmin() {
       let storagePath = "";
 
       try {
-        // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도 (iframe 및 CORS 차단 우회)
-        const uploadResp = await fetch("/api/photos/upload", {
+        // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도 (iframe 및 CORS 차단 우회, 타임아웃 적용)
+        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             fileData: compressedBase64,
             fileName: newPhotoFile.name
-          })
+          }),
+          timeout: 8000 // 8초 타임아웃 제한
         });
 
         if (uploadResp.ok) {
@@ -686,13 +705,14 @@ export default function SubAdmin() {
       if (newActivityFile) {
         const compressedBase64 = await compressImageFile(newActivityFile, 1000, 1000, 0.8);
         try {
-          const uploadResp = await fetch("/api/photos/upload", {
+          const uploadResp = await fetchWithTimeout("/api/photos/upload", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               fileData: compressedBase64,
               fileName: newActivityFile.name
-            })
+            }),
+            timeout: 8000 // 8초 타임아웃 제한
           });
 
           if (uploadResp.ok) {
