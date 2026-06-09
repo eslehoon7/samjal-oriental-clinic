@@ -586,23 +586,13 @@ export default function SubAdmin() {
 
       try {
         // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도 (iframe 및 CORS 차단 우회, 타임아웃 적용)
-        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileData: compressedBase64,
-            fileName: newPhotoFile.name
-          }),
-          timeout: 8000 // 8초 타임아웃 제한
-        });
+        const fileName = `${Date.now()}_${newActivityFile.name}`;
+        const storageRef = ref(storage, `site-images/activities/${fileName}`);
+        const compressedBlob = base64ToBlob(compressedBase64);
+        await uploadBytes(storageRef, compressedBlob);
+        imageUrl = await getDownloadURL(storageRef);
+        storagePath = `site-images/activities/${fileName}`;
 
-        if (uploadResp.ok) {
-          const uploadResult = await uploadResp.json();
-          imageUrl = uploadResult.imageUrl;
-          storagePath = uploadResult.storagePath;
-        } else {
-          throw new Error("Server storage upload route returned non-200 status");
-        }
       } catch (srvErr) {
         console.warn("서버 파이프라인 업로드 실패, 브라우저 직접 업로드 폴백 진입:", srvErr);
         try {
