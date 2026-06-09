@@ -543,6 +543,25 @@ export default function SubAdmin() {
     return new Blob([uInt8Array], { type: contentType });
   };
 
+  // 클라이언트 업로드 타임아웃 헬퍼 (Direct Firebase Storage 업로드 차단/보류 현상 방지)
+  const clientUploadWithTimeout = (storageRef: any, blob: Blob, timeoutMs = 4000): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      const id = setTimeout(() => {
+        reject(new Error("Client Firebase Storage upload timed out"));
+      }, timeoutMs);
+
+      try {
+        await uploadBytes(storageRef, blob);
+        const url = await getDownloadURL(storageRef);
+        clearTimeout(id);
+        resolve(url);
+      } catch (err) {
+        clearTimeout(id);
+        reject(err);
+      }
+    });
+  };
+
   // 사진 추가 — Firebase Storage에 업로드 (서버 우선 시도 후 실패 시 클라이언트 폴백, 전체 불능 시 Base64 직접 탑재) 후 Firestore에 URL 저장
   const handleAddPhotoSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -587,12 +606,11 @@ export default function SubAdmin() {
       } catch (srvErr) {
         console.warn("서버 파이프라인 업로드 실패, 브라우저 직접 업로드 폴백 진입:", srvErr);
         try {
-          // 3. 브라우저 직접 Firebase Storage 업로드 시도 (폴백 장치)
+          // 3. 브라우저 직접 Firebase Storage 업로드 시도 (폴백 장치, 타임아웃 4초 적용)
           const fileName = `${Date.now()}_${newPhotoFile.name}`;
           const storageRef = ref(storage, `site-images/gallery/${fileName}`);
           const compressedBlob = base64ToBlob(compressedBase64);
-          await uploadBytes(storageRef, compressedBlob);
-          imageUrl = await getDownloadURL(storageRef);
+          imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4000);
           storagePath = `site-images/gallery/${fileName}`;
         } catch (clientErr) {
           console.warn("클라이언트 스토리지 업로드도 차단됨. 최종 수단인 인라인 Base64 기입으로 강제 전환합니다:", clientErr);
@@ -728,8 +746,7 @@ export default function SubAdmin() {
             const fileName = `${Date.now()}_${newActivityFile.name}`;
             const storageRef = ref(storage, `site-images/activities/${fileName}`);
             const compressedBlob = base64ToBlob(compressedBase64);
-            await uploadBytes(storageRef, compressedBlob);
-            imageUrl = await getDownloadURL(storageRef);
+            imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4000);
             storagePath = `site-images/activities/${fileName}`;
           } catch (clientErr) {
             console.warn("직접 업로드 실패, Base64 직접 탑재:", clientErr);
