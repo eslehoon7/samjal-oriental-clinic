@@ -16,7 +16,7 @@ const defaultActivities = [
     title: "2024 파리 올림픽",
     subtitle: "패럴림픽 국가대표팀 주치의",
     desc: "프랑스 파리 현지 국가대표 한방의학 지원단으로 임명되어 양궁, 사격 등 태극 마크 금메달 주역 종목 전담 한의약 의료팀 대표 주치의 세션을 전담해 직접 임상 진료를 펼쳤습니다.",
-    image: "/images/paris_olympics_doctor_1781015758388.png",
+    image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Factivities%2F%EB%8C%80%EC%99%B8%ED%99%9C%EB%8F%992_24%ED%8C%8C%EB%A6%AC%EC%98%AC%EB%A6%BC%ED%94%BD.jpg?alt=media&token=335fe4df-c4f8-4d23-9acf-3295afae1954",
     order: 2,
     createdAt: "2024-01-01T00:00:00.000Z"
   },
@@ -26,7 +26,7 @@ const defaultActivities = [
     title: "2020 도쿄 올림픽",
     subtitle: "패럴림픽 국가대표팀 주치의",
     desc: "조정, 육상 대한민국 대표팀 전임 전담 침치료 및 상하지 피로 부상 복구 세션을 성공적으로 수행하며 경기력 유지 및 집중 제어에 강력히 기여하였습니다.",
-    image: "/images/samjal_crew_professional_1780495405627.png",
+    image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Factivities%2F%EB%8C%80%EC%99%B8%ED%99%9C%EB%8F%991_18%ED%95%AD%EC%A0%80%EC%9A%B0.jpg?alt=media&token=bf765b57-952c-4c67-9d8a-6257ddf27652",
     order: 1,
     createdAt: "2020-01-01T00:00:00.000Z"
   }
@@ -187,7 +187,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
                     <img 
-                      src="/images/professional_clean_acupuncture_1780497559621.png" 
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58" 
                       alt="대관절 동기침법 침술 치료" 
                       className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
                       referrerPolicy="no-referrer"
@@ -251,7 +251,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="lg:col-span-5 space-y-6">
                   <div className="rounded-xl overflow-hidden border border-slate-200 shadow-md">
                     <img
-                      src="/images/professional_clean_acupuncture_1780497559621.png"
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
                       alt="대관절 동기침법 치료 정경"
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
@@ -438,7 +438,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                                 <img
                                   src={act.image || "/images/clinic_interior_modern_1780495390125.png"}
                                   alt={act.title}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover object-top"
                                   referrerPolicy="no-referrer"
                                 />
                               </div>
@@ -492,7 +492,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                                 <img
                                   src={act.image || "/images/samjal_crew_professional_1780495405627.png"}
                                   alt={act.title}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover object-[center_30%]"
                                   referrerPolicy="no-referrer"
                                 />
                               </div>

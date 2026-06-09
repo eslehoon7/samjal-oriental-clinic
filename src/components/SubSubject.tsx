@@ -28,7 +28,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "수승화강 요법을 결합하여 염증 독기로 타오르는 관절 열 증세 신속 진정",
         "삼잘 보원탕을 통한 등뼈 주위 기혈 강화 및 골감소 회복"
       ],
-      image: "/images/professional_clean_acupuncture_1780497559621.png"
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
     },
     internal: {
       title: "비위(脾胃) 및 만성 장내과 클리닉",
