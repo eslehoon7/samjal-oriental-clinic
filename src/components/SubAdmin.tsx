@@ -14,7 +14,7 @@ export default function SubAdmin() {
   const [loginPw, setLoginPw] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "activities">("notices");
+  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses">("notices");
   
   // States
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -586,13 +586,23 @@ export default function SubAdmin() {
 
       try {
         // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도 (iframe 및 CORS 차단 우회, 타임아웃 적용)
-        const fileName = `${Date.now()}_${newActivityFile.name}`;
-        const storageRef = ref(storage, `site-images/activities/${fileName}`);
-        const compressedBlob = base64ToBlob(compressedBase64);
-        await uploadBytes(storageRef, compressedBlob);
-        imageUrl = await getDownloadURL(storageRef);
-        storagePath = `site-images/activities/${fileName}`;
+        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileData: compressedBase64,
+            fileName: newPhotoFile.name
+          }),
+          timeout: 8000 // 8초 타임아웃 제한
+        });
 
+        if (uploadResp.ok) {
+          const uploadResult = await uploadResp.json();
+          imageUrl = uploadResult.imageUrl;
+          storagePath = uploadResult.storagePath;
+        } else {
+          throw new Error("Server storage upload route returned non-200 status");
+        }
       } catch (srvErr) {
         console.warn("서버 파이프라인 업로드 실패, 브라우저 직접 업로드 폴백 진입:", srvErr);
         try {
@@ -1104,9 +1114,6 @@ export default function SubAdmin() {
           <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Image className="w-4 h-4" /><span>인테리어 롤링 관리 ({photos.length})</span>
           </button>
-          <button onClick={() => setActiveSubTab("activities")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "activities" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
-            <Sparkles className="w-4 h-4" /><span>대외활동 관리 ({activities.length})</span>
-          </button>
           <button onClick={() => setActiveSubTab("diagnoses")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "diagnoses" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Activity className="w-4 h-4" /><span>자가진단 기록 ({diagnoses.length})</span>
           </button>
@@ -1241,8 +1248,8 @@ export default function SubAdmin() {
           </div>
         )}
 
-        {/* 대외활동 관리 탭 */}
-        {activeSubTab === "activities" && (
+        {/* 대외활동 관리 탭 (비활성화됨) */}
+        {false && (
           <div className="space-y-6 animate-fadeIn text-left">
             <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm relative text-left">
               <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />

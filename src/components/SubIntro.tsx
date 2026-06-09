@@ -16,7 +16,7 @@ const defaultActivities = [
     title: "2024 파리 올림픽",
     subtitle: "패럴림픽 국가대표팀 주치의",
     desc: "프랑스 파리 현지 국가대표 한방의학 지원단으로 임명되어 양궁, 사격 등 태극 마크 금메달 주역 종목 전담 한의약 의료팀 대표 주치의 세션을 전담해 직접 임상 진료를 펼쳤습니다.",
-    image: "/images/clinic_interior_modern_1780495390125.png",
+    image: "/images/paris_olympics_doctor_1781015758388.png",
     order: 2,
     createdAt: "2024-01-01T00:00:00.000Z"
   },
@@ -36,23 +36,8 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
   const [activities, setActivities] = useState<any[]>(defaultActivities);
 
   useEffect(() => {
-    const q = query(collection(db, "activities"), orderBy("order", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (snapshot.empty) {
-        setActivities(defaultActivities);
-        return;
-      }
-      const fetched = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setActivities(fetched);
-    }, (err) => {
-      console.warn("Error fetching activities:", err);
-      setActivities(defaultActivities);
-    });
-
-    return () => unsubscribe();
+    // 앞으로 대외활동은 추가 관리가 불필요하므로 최신의 정적 데이터(파리 올림픽 새사진 포함)를 다이렉트로 연계합니다.
+    setActivities(defaultActivities);
   }, []);
   
   const subTabs = [
