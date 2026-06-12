@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { 
   Trash2, Megaphone, CheckCircle, Image, Send, Check,
-  Activity, ChevronDown, ChevronUp, User, Sparkles, Pencil, X, Plus, Upload
+  Activity, ChevronDown, ChevronUp, User, Sparkles, Pencil, X, Plus, Upload, LayoutGrid
 } from "lucide-react";
 import { Notice, DiagnoseItem } from "../types";
 import { db, storage } from "../firebase";
@@ -14,7 +14,295 @@ export default function SubAdmin() {
   const [loginPw, setLoginPw] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses">("notices");
+  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images">("notices");
+  
+  // Profiles State
+  const [profilesMap, setProfilesMap] = useState<Record<string, string>>({
+    kim_yujung: "/images/researcher_portrait_1780500341416.png",
+    jeon_junyoung: "/images/samjal_crew_professional_1780495405627.png",
+    je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
+    je_hyunyoung: "/images/samjal_characters_expert_1780495449389.png"
+  });
+  const [profileUploadingId, setProfileUploadingId] = useState<string | null>(null);
+  const [profileErrorMap, setProfileErrorMap] = useState<Record<string, string>>({});
+
+  // Subject Images State
+  const defaultSubjectImages: Record<string, string[]> = {
+    spine: [
+      "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+      "/images/professional_clean_acupuncture_1780497559621.png",
+      "/images/clinic_interior_1779805270752.png",
+      "/images/samjal_crew_professional_1780495405627.png"
+    ],
+    internal: [
+      "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+      "/images/samjal_crew_1779805249409.png",
+      "/images/professional_clean_acupuncture_1780497559621.png",
+      "/images/clinic_interior_1779805270752.png"
+    ],
+    allergy: [
+      "/images/clinic_interior_1779805270752.png",
+      "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+      "/images/samjal_crew_1779805249409.png",
+      "/images/professional_clean_acupuncture_1780497559621.png"
+    ],
+    cancer: [
+      "/images/samjal_crew_1779805249409.png",
+      "/images/samjal_crew_professional_1780495405627.png",
+      "/images/clinic_interior_1779805270752.png",
+      "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
+    ],
+    detox: [
+      "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+      "/images/clinic_interior_1779805270752.png",
+      "/images/samjal_crew_1779805249409.png",
+      "/images/samjal_crew_professional_1780495405627.png"
+    ]
+  };
+  const defaultSubjectLabels: Record<string, string[]> = {
+    spine: [
+      "대관절 동기침법",
+      "정밀 약침치료",
+      "쾌적한 원내환경",
+      "척추/관절 전담진"
+    ],
+    internal: [
+      "체질 해독 한약",
+      "소화기 임상진",
+      "정밀 약침치료",
+      "쾌적한 원내환경"
+    ],
+    allergy: [
+      "쾌적한 원내환경",
+      "체질 해독 한약",
+      "소화기 임상진",
+      "정밀 약침치료"
+    ],
+    cancer: [
+      "한양방 통합진료",
+      "면역 암 전담팀",
+      "쾌적한 조력환경",
+      "체질 해독 한약"
+    ],
+    detox: [
+      "체질 해독 한약",
+      "쾌적한 원내환경",
+      "정정 해독 요법",
+      "생체 재생 연구팀"
+    ]
+  };
+  const [subjectImagesMap, setSubjectImagesMap] = useState<Record<string, string[]>>(defaultSubjectImages);
+  const [subjectLabelsMap, setSubjectLabelsMap] = useState<Record<string, string[]>>(defaultSubjectLabels);
+  const [subjectUploadingId, setSubjectUploadingId] = useState<string | null>(null);
+  const [subjectErrorMap, setSubjectErrorMap] = useState<Record<string, string>>({});
+
+  const loadSubjectImages = async () => {
+    try {
+      const snap = await getDocs(collection(db, "subject_images"));
+      const updatedMap = { ...defaultSubjectImages };
+      const updatedLabelsMap = { ...defaultSubjectLabels };
+      snap.forEach(d => {
+        const data = d.data();
+        if (d.id) {
+          if (data.images && Array.isArray(data.images) && data.images.length === 4) {
+            updatedMap[d.id] = data.images;
+          }
+          if (data.labels && Array.isArray(data.labels) && data.labels.length === 4) {
+            updatedLabelsMap[d.id] = data.labels;
+          }
+        }
+      });
+      setSubjectImagesMap(updatedMap);
+      setSubjectLabelsMap(updatedLabelsMap);
+    } catch (err) {
+      console.warn("진료과목 이미지 및 명칭 로드 실패:", err);
+    }
+  };
+
+  const handleSubjectLabelChange = (subjectId: string, imgIdx: number, newLabel: string) => {
+    const currentLabels = [...(subjectLabelsMap[subjectId] || defaultSubjectLabels[subjectId])];
+    currentLabels[imgIdx] = newLabel;
+    setSubjectLabelsMap(prev => ({
+      ...prev,
+      [subjectId]: currentLabels
+    }));
+  };
+
+  const saveSubjectLabel = async (subjectId: string, imgIdx: number) => {
+    try {
+      const currentLabels = [...(subjectLabelsMap[subjectId] || defaultSubjectLabels[subjectId])];
+      await setDoc(doc(db, "subject_images", subjectId), {
+        id: subjectId,
+        labels: currentLabels,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      alert(`해당 치료법의 0${imgIdx + 1}번 명칭이 '${currentLabels[imgIdx]}'로 저장되었습니다.`);
+    } catch (err: any) {
+      console.error(err);
+      alert(`명칭 저장 실패: ${err.message || err}`);
+    }
+  };
+
+  const handleSubjectPhotoChange = async (subjectId: string, imgIdx: number, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const uploadKey = `${subjectId}_${imgIdx}`;
+    if (file.size > 5 * 1024 * 1024) {
+      setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: "이미지 크기는 최대 5MB까지 가능합니다." }));
+      return;
+    }
+
+    setSubjectUploadingId(uploadKey);
+    setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: "" }));
+
+    try {
+      const compressedBase64 = await compressImageFile(file, 1000, 1000, 0.82);
+      let imageUrl = "";
+      let storagePath = "";
+
+      try {
+        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileData: compressedBase64,
+            fileName: `subject_${uploadKey}_${file.name}`
+          }),
+          timeout: 8000
+        });
+
+        if (uploadResp.ok) {
+          const uploadResult = await uploadResp.json();
+          imageUrl = uploadResult.imageUrl;
+          storagePath = uploadResult.storagePath;
+        } else {
+          throw new Error("Server upload route failure");
+        }
+      } catch (srvErr) {
+        console.warn("서버 진료과목 업로드 실패, 브라우저 직접 업로드 폴백:", srvErr);
+        try {
+          const fileName = `subject_${uploadKey}_${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, `site-images/subjects/${fileName}`);
+          const compressedBlob = base64ToBlob(compressedBase64);
+          imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4500);
+          storagePath = `site-images/subjects/${fileName}`;
+        } catch (clientErr) {
+          console.warn("직접 업로드 불가, Base64 직접 기입 폴백:", clientErr);
+          imageUrl = compressedBase64;
+          storagePath = "inline-fallback-base64";
+        }
+      }
+
+      const currentImages = [...(subjectImagesMap[subjectId] || defaultSubjectImages[subjectId])];
+      currentImages[imgIdx] = imageUrl;
+
+      await setDoc(doc(db, "subject_images", subjectId), {
+        id: subjectId,
+        images: currentImages,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      setSubjectImagesMap(prev => ({
+         ...prev,
+         [subjectId]: currentImages
+      }));
+      alert(`해당 치료법의 0${imgIdx + 1}번 사진이 안전하게 변경되었습니다.`);
+    } catch (err: any) {
+      console.error(err);
+      setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: `업로드 오류: ${err.message || err}` }));
+    } finally {
+      setSubjectUploadingId(null);
+    }
+  };
+
+  const loadProfiles = async () => {
+    try {
+      const snap = await getDocs(collection(db, "profile_images"));
+      const updatedMap = {
+        kim_yujung: "/images/researcher_portrait_1780500341416.png",
+        jeon_junyoung: "/images/samjal_crew_professional_1780495405627.png",
+        je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
+        je_hyunyoung: "/images/samjal_characters_expert_1780495449389.png"
+      };
+      snap.forEach(d => {
+        const val = d.data();
+        if (d.id && val.image) {
+          updatedMap[d.id as keyof typeof updatedMap] = val.image;
+        }
+      });
+      setProfilesMap(updatedMap);
+    } catch (err) {
+      console.warn("의료진 프로필 로드 실패:", err);
+    }
+  };
+
+  const handleProfilePhotoChange = async (profileId: string, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: "이미지 크기는 최대 5MB까지 가능합니다." }));
+      return;
+    }
+
+    setProfileUploadingId(profileId);
+    setProfileErrorMap(prev => ({ ...prev, [profileId]: "" }));
+
+    try {
+      const compressedBase64 = await compressImageFile(file, 1000, 1000, 0.82);
+      let imageUrl = "";
+      let storagePath = "";
+
+      try {
+        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileData: compressedBase64,
+            fileName: `${profileId}_${file.name}`
+          }),
+          timeout: 8000
+        });
+
+        if (uploadResp.ok) {
+          const uploadResult = await uploadResp.json();
+          imageUrl = uploadResult.imageUrl;
+          storagePath = uploadResult.storagePath;
+        } else {
+          throw new Error("Server upload route failure");
+        }
+      } catch (srvErr) {
+        console.warn("서버 프로필 업로드 실패, 브라우저 직접 업로드 폴백:", srvErr);
+        try {
+          const fileName = `profile_${profileId}_${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, `site-images/profiles/${fileName}`);
+          const compressedBlob = base64ToBlob(compressedBase64);
+          imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4500);
+          storagePath = `site-images/profiles/${fileName}`;
+        } catch (clientErr) {
+          console.warn("직접 업로드 불가, Base64 직접 기입 폴백:", clientErr);
+          imageUrl = compressedBase64;
+          storagePath = "inline-fallback-base64";
+        }
+      }
+
+      await setDoc(doc(db, "profile_images", profileId), {
+        id: profileId,
+        image: imageUrl,
+        storagePath: storagePath,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      setProfilesMap(prev => ({ ...prev, [profileId]: imageUrl }));
+      alert("프로필 사진이 안전하게 변경되었습니다. 전 원내 소개 시스템에 즉시 반영됩니다.");
+    } catch (err: any) {
+      console.error(err);
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: `업로드 오류: ${err.message || err}` }));
+    } finally {
+      setProfileUploadingId(null);
+    }
+  };
   
   // States
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -286,6 +574,11 @@ export default function SubAdmin() {
       }
       diagList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setDiagnoses(diagList);
+
+      // Profiles
+      await loadProfiles();
+      // Subject Images
+      await loadSubjectImages();
     } catch (e) {
       console.error(e);
     } finally {
@@ -1107,15 +1400,21 @@ export default function SubAdmin() {
           <p className="text-xs sm:text-sm font-sans text-slate-500 max-w-xl mx-auto leading-relaxed pt-2">원내 공지사항 게재 상황 및 청정 원내 전시 갤러리 롤링 이미지를 통합 관리하는 원장실 중앙 행정망입니다.</p>
         </div>
 
-        <div className="flex border-b border-slate-200 mb-8 justify-center sm:justify-start gap-2">
-          <button onClick={() => setActiveSubTab("notices")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "notices" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+        <div className="flex border-b border-slate-200 mb-8 justify-center sm:justify-start gap-2 overflow-x-auto scroller-hidden">
+          <button onClick={() => setActiveSubTab("notices")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "notices" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Megaphone className="w-4 h-4" /><span>공정 사항 게재 ({notices.length})</span>
           </button>
-          <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Image className="w-4 h-4" /><span>인테리어 롤링 관리 ({photos.length})</span>
           </button>
-          <button onClick={() => setActiveSubTab("diagnoses")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeSubTab === "diagnoses" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => setActiveSubTab("diagnoses")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "diagnoses" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Activity className="w-4 h-4" /><span>자가진단 기록 ({diagnoses.length})</span>
+          </button>
+          <button onClick={() => setActiveSubTab("profiles")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "profiles" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+            <User className="w-4 h-4" /><span>의료진 프로필 관리 (4)</span>
+          </button>
+          <button onClick={() => setActiveSubTab("subject_images")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "subject_images" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+            <LayoutGrid className="w-4 h-4" /><span>진료과목 이미지 관리 (5×4)</span>
           </button>
         </div>
 
@@ -1671,6 +1970,231 @@ export default function SubAdmin() {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* 의료진 프로필 관리 탭 */}
+        {activeSubTab === "profiles" && (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-sm text-left relative animate-fadeIn">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            <div className="space-y-1.5 mb-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-widest block">Medical Staff Profiles</span>
+                <h3 className="text-xl font-sans font-extrabold text-[#0F2C59]">의료진 및 연구 파트너 프로필 관리</h3>
+                <p className="text-xs font-sans text-slate-400">삼잘한의원 소개 및 지점소개 란에 송출되는 대표 의료진 4인의 프로필 얼굴 사진을 실시간 업데이트합니다.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Card 1: 김유정 박사 */}
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-2.5 py-1 bg-[#0F2C59]/10 text-[#0F2C59] font-sans text-[11px] font-bold rounded-lg">의뢰 파트너</span>
+                    <span className="text-[10px] font-mono text-slate-400">ID: kim_yujung</span>
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                    김유정 박사
+                    <span className="text-xs text-slate-400 font-medium">팜힐 천연물 제형 연구소</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">삼잘한의원 소개 - Research & Clinical Partners 프로필 사진 수정</p>
+                  
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
+                      <img src={profilesMap.kim_yujung} alt="김유정 박사" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm">
+                        사진 변경하기
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("kim_yujung", e)} />
+                      </label>
+                      {profileUploadingId === "kim_yujung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
+                      {profileErrorMap.kim_yujung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.kim_yujung}</p>}
+                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: 전준영 원장 */}
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">노원점 대표</span>
+                    <span className="text-[10px] font-mono text-slate-400">ID: jeon_junyoung</span>
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                    전준영 원장
+                    <span className="text-xs text-slate-400 font-medium font-sans">한방재활의학과 전문의</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 노원점 대표원장 프로필 사진 수정</p>
+                  
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
+                      <img src={profilesMap.jeon_junyoung} alt="전준영 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
+                        사진 변경하기
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("jeon_junyoung", e)} />
+                      </label>
+                      {profileUploadingId === "jeon_junyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
+                      {profileErrorMap.jeon_junyoung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.jeon_junyoung}</p>}
+                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: 제정진 원장 */}
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">구리점 대표</span>
+                    <span className="text-[10px] font-mono text-slate-400">ID: je_jengjin</span>
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                    제정진 원장
+                    <span className="text-xs text-slate-400 font-medium">구리본점 대표원장</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 구리본점 대표원장 프로필 사진 수정</p>
+                  
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
+                      <img src={profilesMap.je_jengjin} alt="제정진 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
+                        사진 변경하기
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_jengjin", e)} />
+                      </label>
+                      {profileUploadingId === "je_jengjin" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
+                      {profileErrorMap.je_jengjin && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.je_jengjin}</p>}
+                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: 제현영 원장 */}
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">구리점 원장</span>
+                    <span className="text-[10px] font-mono text-slate-400">ID: je_hyunyoung</span>
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                    제현영 원장
+                    <span className="text-xs text-slate-400 font-medium font-sans">구리본점 진료원장</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 구리본점 제현영 진료원장 프로필 사진 수정</p>
+                  
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
+                      <img src={profilesMap.je_hyunyoung} alt="제현영 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
+                        사진 변경하기
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_hyunyoung", e)} />
+                      </label>
+                      {profileUploadingId === "je_hyunyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
+                      {profileErrorMap.je_hyunyoung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.je_hyunyoung}</p>}
+                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 진료과목 이미지 관리 탭 */}
+        {activeSubTab === "subject_images" && (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-sm text-left relative animate-fadeIn">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            <div className="space-y-1.5 mb-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-widest block">Clinical Subject Images Manager</span>
+                <h3 className="text-xl font-sans font-extrabold text-[#0F2C59]">정밀 진료과목별 전용 이미지 관리 (2×2 그리드)</h3>
+                <p className="text-xs font-sans text-slate-400">각 진료과목 상세 란에 노출되는 4개 분할 사진(2x2 배열)을 실시간으로 교체/관리합니다.</p>
+              </div>
+            </div>
+
+            <div className="space-y-12">
+              {[
+                { id: "spine", name: "통증 / 관절 / 척추질환" },
+                { id: "internal", name: "비위 및 만성 장내과질환" },
+                { id: "allergy", name: "알레르기 및 면역질환" },
+                { id: "cancer", name: "한양방 통합 암관리 클리닉" },
+                { id: "detox", name: "항노화 및 생체 디톡스 해독" }
+              ].map((subject) => {
+                const imgList = subjectImagesMap[subject.id] || defaultSubjectImages[subject.id];
+                return (
+                  <div key={subject.id} className="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-slate-50/30">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                      <h4 className="text-base font-extrabold text-[#0F2C59] font-sans flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#0F2C59]" />
+                        {subject.name}
+                      </h4>
+                      <span className="text-[10px] font-mono text-slate-400">ID: {subject.id}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      {imgList.map((url, idx) => {
+                        const uploadKey = `${subject.id}_${idx}`;
+                        const labelList = subjectLabelsMap[subject.id] || defaultSubjectLabels[subject.id] || [];
+                        const currentLabel = labelList[idx] || "";
+                        return (
+                          <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col justify-between hover:shadow-sm transition-all">
+                            <div className="space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-extrabold bg-slate-100 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">0{idx + 1}번 롤 파일</span>
+                                {subjectUploadingId === uploadKey && <span className="text-[9px] text-[#0F2C59] font-bold animate-pulse">업로드중...</span>}
+                              </div>
+                              <div className="aspect-square w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                                <img src={url} alt={`${subject.name} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              </div>
+
+                              {/* 명칭 관리 인풋 필드 */}
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-400 font-sans">사진 명칭 (0{idx + 1})</label>
+                                <div className="flex gap-1">
+                                  <input 
+                                    type="text" 
+                                    value={currentLabel} 
+                                    onChange={(e) => handleSubjectLabelChange(subject.id, idx, e.target.value)}
+                                    className="flex-1 min-w-0 text-xs px-2 py-1 border border-slate-200 rounded font-sans focus:outline-none focus:border-[#0F2C59] focus:ring-1 focus:ring-[#0F2C59]/10 bg-slate-50/50"
+                                    placeholder="명칭 작성"
+                                  />
+                                  <button 
+                                    type="button"
+                                    onClick={() => saveSubjectLabel(subject.id, idx)}
+                                    className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold font-sans cursor-pointer transition-all shrink-0 shadow-sm"
+                                  >
+                                    저장
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3.5 space-y-1.5">
+                              <label className="block w-full text-center py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold font-sans transition-all cursor-pointer shadow-sm">
+                                사진 교체하기
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleSubjectPhotoChange(subject.id, idx, e)} />
+                              </label>
+                              {subjectErrorMap[uploadKey] && (
+                                <p className="text-[9px] text-red-500 font-bold leading-tight mt-1">{subjectErrorMap[uploadKey]}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

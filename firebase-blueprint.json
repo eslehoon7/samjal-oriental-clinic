@@ -27,12 +27,67 @@
         }
       },
       "required": ["title", "content", "date", "isPinned"]
+    },
+    "ProfileImage": {
+      "title": "ProfileImage",
+      "description": "의료진 프로필 이미지 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "프로필 고유 ID (예: kim_yujung, jeon_junyoung, je_jengjin, je_hyunyoung)"
+        },
+        "name": {
+          "type": "string",
+          "description": "의료진/박사 이름"
+        },
+        "image": {
+          "type": "string",
+          "description": "프로필 이미지 URL 또는 Base64 경로"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "마지막 업데이트 시간"
+        }
+      },
+      "required": ["id", "image"]
+    },
+    "SubjectImage": {
+      "title": "SubjectImage",
+      "description": "진료과목 서브 이미지 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "진료과목 ID (예: spine, internal, allergy, cancer, detox)"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "4개의 이미지 URL 배열"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "마지막 업데이트 시간"
+        }
+      },
+      "required": ["id", "images"]
     }
   },
   "firestore": {
     "notices": {
       "schema": "Notice",
       "description": "공지사항 컬렉션"
+    },
+    "profile_images": {
+      "schema": "ProfileImage",
+      "description": "의료진 프로필 이미지 컬렉션"
+    },
+    "subject_images": {
+      "schema": "SubjectImage",
+      "description": "진료과목 서브 이미지 컬렉션"
     }
   }
 }

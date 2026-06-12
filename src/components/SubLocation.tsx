@@ -50,6 +50,33 @@ export default function SubLocation() {
   const [activeBranch, setActiveBranch] = useState("nowon");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Profiles State
+  const [profiles, setProfiles] = useState<Record<string, string>>({
+    jeon_junyoung: "/images/samjal_crew_professional_1780495405627.png",
+    je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
+    je_hyunyoung: "/images/samjal_characters_expert_1780495449389.png"
+  });
+
+  useEffect(() => {
+    // 실시간 의료진 프로필 동기화
+    const unsubscribe = onSnapshot(collection(db, "profile_images"), (snap) => {
+      const updated = {
+        jeon_junyoung: "/images/samjal_crew_professional_1780495405627.png",
+        je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
+        je_hyunyoung: "/images/samjal_characters_expert_1780495449389.png"
+      };
+      snap.forEach(d => {
+        if (d.id && d.data().image) {
+          updated[d.id as keyof typeof updated] = d.data().image;
+        }
+      });
+      setProfiles(updated);
+    }, (err) => {
+      console.warn("의료진 프로필 데이터 실시간 동기화 오프라인 폴백:", err);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Gallery states for Interior Tour with localStorage sync
   const [galleryItems, setGalleryItems] = useState<any[]>(() => {
     try {
@@ -152,7 +179,7 @@ export default function SubLocation() {
       doctor: {
         name: "전준영 원장",
         role: "삼잘한의원 노원점 대표원장",
-        image: "/images/samjal_crew_professional_1780495405627.png",
+        image: profiles.jeon_junyoung,
         credentials: [
           "경희대 한의대 학사",
           "경희대 한의대 임상한의학 석사",
@@ -208,7 +235,7 @@ export default function SubLocation() {
       doctor: {
         name: "제정진 원장",
         role: "삼잘한의원 구리점 대표원장",
-        image: "/images/samjal_crew_professional_1780495405627.png",
+        image: profiles.je_jengjin,
         credentials: [
           "경희대 한의대 학사",
           "경희대 한의대 임상한의학 박사",
@@ -441,7 +468,7 @@ export default function SubLocation() {
               <div className="lg:col-span-5 flex flex-col items-center">
                 <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-slate-50 border border-slate-200">
                   <img
-                    src="/images/samjal_characters_expert_1780495449389.png"
+                    src={profiles.je_hyunyoung}
                     alt="제현영 원장"
                     className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1"
                     referrerPolicy="no-referrer"

@@ -30,5 +30,15 @@ service cloud.firestore {
     match /diagnoses/{diagnoseId} {
       allow read, write: if true;
     }
+
+    // 6. profile_images Collection Rules
+    match /profile_images/{profileId} {
+      allow read, write: if true;
+    }
+
+    // 7. subject_images Collection Rules
+    match /subject_images/{subjectId} {
+      allow read, write: if true;
+    }
   }
 }

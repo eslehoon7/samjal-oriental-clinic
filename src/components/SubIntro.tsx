@@ -34,10 +34,28 @@ const defaultActivities = [
 
 export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroProps) {
   const [activities, setActivities] = useState<any[]>(defaultActivities);
+  const [kimPhoto, setKimPhoto] = useState<string>("/images/researcher_portrait_1780500341416.png");
 
   useEffect(() => {
     // 앞으로 대외활동은 추가 관리가 불필요하므로 최신의 정적 데이터(파리 올림픽 새사진 포함)를 다이렉트로 연계합니다.
     setActivities(defaultActivities);
+  }, []);
+
+  useEffect(() => {
+    // 실시간 의료진 프로필 동기화
+    const unsubscribe = onSnapshot(collection(db, "profile_images"), (snap) => {
+      snap.forEach(d => {
+        if (d.id === "kim_yujung") {
+          const val = d.data();
+          if (val && val.image) {
+            setKimPhoto(val.image);
+          }
+        }
+      });
+    }, (err) => {
+      console.warn("프로필 데이터 실시간 동기화 오프라인 폴백:", err);
+    });
+    return () => unsubscribe();
   }, []);
   
   const subTabs = [
@@ -288,9 +306,9 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="w-full max-w-5xl mx-auto h-[1px] bg-slate-200" />
 
                 <div className="bg-transparent p-0 max-w-5xl mx-auto flex flex-col md:flex-row gap-12 items-center">
-                  <div className="w-full md:w-1/2 aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0 shadow-sm">
+                  <div className="w-full md:w-1/2 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0 shadow-sm">
                     <img 
-                      src="/images/researcher_portrait_1780500341416.png" 
+                      src={kimPhoto} 
                       alt="김유정 박사 팜힐 천연물 제형 연구소" 
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"

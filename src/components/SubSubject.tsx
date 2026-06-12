@@ -1,12 +1,106 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { db } from "../firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 interface SubSubjectProps {
   setActiveTab: (tab: string) => void;
 }
 
+const defaultSubjectImages: Record<string, string[]> = {
+  spine: [
+    "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+    "/images/professional_clean_acupuncture_1780497559621.png",
+    "/images/clinic_interior_1779805270752.png",
+    "/images/samjal_crew_professional_1780495405627.png"
+  ],
+  internal: [
+    "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+    "/images/samjal_crew_1779805249409.png",
+    "/images/professional_clean_acupuncture_1780497559621.png",
+    "/images/clinic_interior_1779805270752.png"
+  ],
+  allergy: [
+    "/images/clinic_interior_1779805270752.png",
+    "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+    "/images/samjal_crew_1779805249409.png",
+    "/images/professional_clean_acupuncture_1780497559621.png"
+  ],
+  cancer: [
+    "/images/samjal_crew_1779805249409.png",
+    "/images/samjal_crew_professional_1780495405627.png",
+    "/images/clinic_interior_1779805270752.png",
+    "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
+  ],
+  detox: [
+    "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+    "/images/clinic_interior_1779805270752.png",
+    "/images/samjal_crew_1779805249409.png",
+    "/images/samjal_crew_professional_1780495405627.png"
+  ]
+};
+
+const subjectImageNames: Record<string, string[]> = {
+  spine: [
+    "대관절 동기침법",
+    "정밀 약침치료",
+    "쾌적한 원내환경",
+    "척추/관절 전담진"
+  ],
+  internal: [
+    "체질 해독 한약",
+    "소화기 임상진",
+    "정밀 약침치료",
+    "쾌적한 원내환경"
+  ],
+  allergy: [
+    "쾌적한 원내환경",
+    "체질 해독 한약",
+    "소화기 임상진",
+    "정밀 약침치료"
+  ],
+  cancer: [
+    "한양방 통합진료",
+    "면역 암 전담팀",
+    "쾌적한 조력환경",
+    "체질 해독 한약"
+  ],
+  detox: [
+    "체질 해독 한약",
+    "쾌적한 원내환경",
+    "정정 해독 요법",
+    "생체 재생 연구팀"
+  ]
+};
+
 export default function SubSubject({ setActiveTab }: SubSubjectProps) {
   const [activeSubTab, setActiveSubTab] = useState("spine");
+  const [subjectImages, setSubjectImages] = useState<Record<string, string[]>>(defaultSubjectImages);
+  const [subjectLabels, setSubjectLabels] = useState<Record<string, string[]>>(subjectImageNames);
+
+  useEffect(() => {
+    // 실시간 진료과목 서브 이미지 및 명칭 동기화
+    const unsubscribe = onSnapshot(collection(db, "subject_images"), (snap) => {
+      const updatedImages = { ...defaultSubjectImages };
+      const updatedLabels = { ...subjectImageNames };
+      snap.forEach(d => {
+        const data = d.data();
+        if (d.id) {
+          if (data.images && Array.isArray(data.images) && data.images.length === 4) {
+            updatedImages[d.id] = data.images;
+          }
+          if (data.labels && Array.isArray(data.labels) && data.labels.length === 4) {
+            updatedLabels[d.id] = data.labels;
+          }
+        }
+      });
+      setSubjectImages(updatedImages);
+      setSubjectLabels(updatedLabels);
+    }, (err) => {
+      console.warn("진료과목 이미지 및 명칭 실시간 동기화 오프라인 폴백:", err);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const subTabs = [
     { id: "spine", label: "통증/관절/척추질환" },
@@ -195,17 +289,28 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             </div>
           </div>
 
-          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 (리퍼러 정책 준수) */}
-          <div className="lg:col-span-5 min-h-[300px] rounded-xl overflow-hidden border border-slate-200 shadow-inner relative flex flex-col">
-            <img
-              src={current.image}
-              alt={current.title}
-              className="w-full h-full object-cover flex-1"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10 text-left">
-              <p className="text-slate-300 text-xs font-sans">Samjal Special Recovery Focus Care</p>
-              <h4 className="text-white text-base font-sans font-bold">정밀 의학 기반 침구약학 솔루션</h4>
+          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 */}
+          <div className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative bg-slate-50/50 p-1.5 border border-slate-200/60">
+            <div className="grid grid-cols-2 gap-1.5">
+              {(subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab]).map((imgUrl, idx) => {
+                const labels = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
+                const label = labels[idx] || `치료 이미지 0${idx + 1}`;
+                return (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm group">
+                    <img
+                      src={imgUrl}
+                      alt={`${current.title} 이미지 ${idx + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-slate-950/70 backdrop-blur-[1px] py-1.5 px-2 text-center pointer-events-none transition-all">
+                      <span className="text-white text-[11px] sm:text-xs font-sans font-semibold tracking-tight">
+                        {label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
