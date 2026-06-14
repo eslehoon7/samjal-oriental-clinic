@@ -6,11 +6,6 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ID Validation Helper
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     // 2. Notices Collection Rules
     match /notices/{noticeId} {
       allow read, write: if true;
@@ -28,6 +23,21 @@ service cloud.firestore {
 
     // 5. diagnoses Collection Rules
     match /diagnoses/{diagnoseId} {
+      allow read, write: if true;
+    }
+
+    // 6. profile_images Collection Rules
+    match /profile_images/{profileId} {
+      allow read, write: if true;
+    }
+
+    // 7. subject_images Collection Rules
+    match /subject_images/{subjectId} {
+      allow read, write: if true;
+    }
+
+    // 8. intro_images Collection Rules
+    match /intro_images/{introId} {
       allow read, write: if true;
     }
   }

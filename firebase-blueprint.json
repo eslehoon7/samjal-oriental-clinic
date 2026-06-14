@@ -15,7 +15,7 @@
         },
         "date": {
           "type": "string",
-          "description": "등록일자 (예: YYYY-MM-DD)"
+          "description": "등록일자"
         },
         "isPinned": {
           "type": "boolean",
@@ -35,45 +35,119 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "프로필 고유 ID (예: kim_yujung, jeon_junyoung, je_jengjin, je_hyunyoung)"
+          "description": "프로필 고유 ID"
         },
         "name": {
           "type": "string",
-          "description": "의료진/박사 이름"
+          "description": "의료진 이름"
         },
         "image": {
           "type": "string",
-          "description": "프로필 이미지 URL 또는 Base64 경로"
+          "description": "프로필 이미지 URL"
         },
         "updatedAt": {
           "type": "string",
-          "description": "마지막 업데이트 시간"
+          "description": "업데이트 시각"
         }
       },
       "required": ["id", "image"]
     },
     "SubjectImage": {
       "title": "SubjectImage",
-      "description": "진료과목 서브 이미지 모델",
+      "description": "진료과목 이미지 모델",
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
-          "description": "진료과목 ID (예: spine, internal, allergy, cancer, detox)"
+          "description": "진료과목 ID"
         },
         "images": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "4개의 이미지 URL 배열"
+          "description": "이미지 URL 배열"
         },
         "updatedAt": {
           "type": "string",
-          "description": "마지막 업데이트 시간"
+          "description": "업데이트 시각"
         }
       },
       "required": ["id", "images"]
+    },
+    "IntroImage": {
+      "title": "IntroImage",
+      "description": "원내 소개 및 고유치료 이미지 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "소개 ID (philosophy_main, suseung_hwagang, wisubae_annyeong, daegwanjeol_donggichim)"
+        },
+        "image": {
+          "type": "string",
+          "description": "이미지 URL"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "업데이트 시각"
+        }
+      },
+      "required": ["id", "image"]
+    },
+    "GalleryPhoto": {
+      "title": "GalleryPhoto",
+      "description": "원내 전경 사진 갤러리 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "order": {
+          "type": "integer"
+        }
+      },
+      "required": ["image"]
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "삼잘 대외활동 주치의 연혁 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "title"]
+    },
+    "Diagnose": {
+      "title": "Diagnose",
+      "description": "자가진단 기록 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id"]
     }
   },
   "firestore": {
@@ -88,6 +162,22 @@
     "subject_images": {
       "schema": "SubjectImage",
       "description": "진료과목 서브 이미지 컬렉션"
+    },
+    "intro_images": {
+      "schema": "IntroImage",
+      "description": "원내 소개 및 고유치료 이미지 컬렉션"
+    },
+    "galleryPhotos": {
+      "schema": "GalleryPhoto",
+      "description": "원내 전경 사진 컬렉션"
+    },
+    "activities": {
+      "schema": "Activity",
+      "description": "대외활동 컬렉션"
+    },
+    "diagnoses": {
+      "schema": "Diagnose",
+      "description": "자가진단 기록 컬렉션"
     }
   }
 }

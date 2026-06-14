@@ -35,6 +35,12 @@ const defaultActivities = [
 export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroProps) {
   const [activities, setActivities] = useState<any[]>(defaultActivities);
   const [kimPhoto, setKimPhoto] = useState<string>("/images/researcher_portrait_1780500341416.png");
+  const [introImages, setIntroImages] = useState<Record<string, string>>({
+    philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
+    suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
+    wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
+  });
 
   useEffect(() => {
     // 앞으로 대외활동은 추가 관리가 불필요하므로 최신의 정적 데이터(파리 올림픽 새사진 포함)를 다이렉트로 연계합니다.
@@ -54,6 +60,27 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
       });
     }, (err) => {
       console.warn("프로필 데이터 실시간 동기화 오프라인 폴백:", err);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    // 실시간 소개/치료 이미지 동기화
+    const unsubscribe = onSnapshot(collection(db, "intro_images"), (snap) => {
+      const updated = {
+        philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
+        suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
+        wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
+      };
+      snap.forEach(d => {
+        if (d.id && d.data().image) {
+          updated[d.id as keyof typeof updated] = d.data().image;
+        }
+      });
+      setIntroImages(updated);
+    }, (err) => {
+      console.warn("소개 이미지 실시간 동기화 오프라인 폴백:", err);
     });
     return () => unsubscribe();
   }, []);
@@ -146,7 +173,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 </div>
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow-lg">
                   <img
-                    src="/images/clinic_interior_modern_1780495390125.png"
+                    src={introImages.philosophy_main}
                     alt="진료철학 메인 이미지"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -157,14 +184,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
               {/* 삼잘 특권 자인 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-slate-200 w-full divide-y md:divide-y-0 md:divide-x divide-slate-200 rounded-none pt-0 mt-16 bg-white shadow-md overflow-hidden animate-fadeIn">
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
-                  <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
+                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
                     <img 
-                      src="/images/clinic_interior_modern_1780495390125.png" 
+                      src={introImages.suseung_hwagang} 
                       alt="수승화강 기류 환경" 
-                      className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
                   <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
@@ -182,7 +208,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
                     <img 
-                      src="/images/hygienic_premium_hanbang_herbal_1780497683155.png" 
+                      src={introImages.wisubae_annyeong} 
                       alt="위수배 안녕 한약 치료" 
                       className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
                       referrerPolicy="no-referrer"
@@ -205,7 +231,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
                     <img 
-                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58" 
+                      src={introImages.daegwanjeol_donggichim} 
                       alt="대관절 동기침법 침술 치료" 
                       className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
                       referrerPolicy="no-referrer"

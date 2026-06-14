@@ -16,8 +16,18 @@ export default function SubAdmin() {
 
   const labelSaveTimeoutRef = useRef<Record<string, any>>({});
 
-  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images">("notices");
+  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images" | "intro_images">("notices");
   
+  // Intro Images State
+  const [introImagesMap, setIntroImagesMap] = useState<Record<string, string>>({
+    philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
+    suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
+    wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+  });
+  const [introUploadingId, setIntroUploadingId] = useState<string | null>(null);
+  const [introErrorMap, setIntroErrorMap] = useState<Record<string, string>>({});
+
   // Profiles State
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({
     kim_yujung: "/images/researcher_portrait_1780500341416.png",
@@ -119,7 +129,7 @@ export default function SubAdmin() {
       const updatedLabelsMap = { ...defaultSubjectLabels };
       snap.forEach(d => {
         const data = d.data();
-        if (d.id) {
+        if (d.id !== "config" && d.id) {
           if (data.images && Array.isArray(data.images)) {
             updatedMap[d.id] = data.images;
           }
@@ -266,6 +276,95 @@ export default function SubAdmin() {
     }
   };
 
+  const loadIntroImages = async () => {
+    try {
+      const snap = await getDocs(collection(db, "intro_images"));
+      const updatedMap = {
+        philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
+        suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
+        wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+      };
+      snap.forEach(d => {
+        const val = d.data();
+        if (d.id && val.image) {
+          updatedMap[d.id as keyof typeof updatedMap] = val.image;
+        }
+      });
+      setIntroImagesMap(updatedMap);
+    } catch (err) {
+      console.warn("원내 소개/치료 이미지 로드 실패:", err);
+    }
+  };
+
+  const handleIntroPhotoChange = async (introId: string, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setIntroErrorMap(prev => ({ ...prev, [introId]: "이미지 크기는 최대 10MB까지 가능합니다." }));
+      return;
+    }
+
+    setIntroUploadingId(introId);
+    setIntroErrorMap(prev => ({ ...prev, [introId]: "" }));
+
+    try {
+      // Compress the image to safe dimension before upload
+      const compressedBase64 = await compressImageFile(file, 1000, 1000, 0.70);
+      let imageUrl = "";
+      let storagePath = "";
+
+      try {
+        const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileData: compressedBase64,
+            fileName: `intro_${introId}_${file.name}`
+          }),
+          timeout: 8000
+        });
+
+        if (uploadResp.ok) {
+          const uploadResult = await uploadResp.json();
+          imageUrl = uploadResult.imageUrl;
+          storagePath = uploadResult.storagePath;
+        } else {
+          throw new Error("Server upload failure");
+        }
+      } catch (srvErr) {
+        console.warn("서버 업로드 업로더 불가, 브라우저 직접 전송 폴백:", srvErr);
+        try {
+          const fileName = `intro_${introId}_${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, `site-images/intro/${fileName}`);
+          const compressedBlob = base64ToBlob(compressedBase64);
+          imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4500);
+          storagePath = `site-images/intro/${fileName}`;
+        } catch (clientErr) {
+          console.warn("직접 업로드 불가, Base64 직접 기입 폴백:", clientErr);
+          imageUrl = compressedBase64;
+          storagePath = "inline-fallback-base64";
+        }
+      }
+
+      await setDoc(doc(db, "intro_images", introId), {
+        id: introId,
+        image: imageUrl,
+        storagePath: storagePath,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      setIntroImagesMap(prev => ({ ...prev, [introId]: imageUrl }));
+      showToast("소개 및 고유치료 이미지가 안전하고 완벽하게 반영되었습니다!", "success");
+    } catch (err: any) {
+      console.error(err);
+      setIntroErrorMap(prev => ({ ...prev, [introId]: `업로드 중 에러 발생: ${err.message || err}` }));
+    } finally {
+      setIntroUploadingId(null);
+    }
+  };
+
   const loadProfiles = async () => {
     try {
       const snap = await getDocs(collection(db, "profile_images"));
@@ -394,6 +493,7 @@ export default function SubAdmin() {
   const [photoEditTitle, setPhotoEditTitle] = useState("");
   const [photoEditDesc, setPhotoEditDesc] = useState("");
   const [photoEditBranch, setPhotoEditBranch] = useState("both");
+  const [photoEditTagLabel, setPhotoEditTagLabel] = useState("");
 
   // Photos Add Form — Firebase Storage 기반으로 변경
   const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
@@ -630,6 +730,8 @@ export default function SubAdmin() {
       await loadProfiles();
       // Subject Images
       await loadSubjectImages();
+      // Intro/Treatment Images
+      await loadIntroImages();
     } catch (e) {
       console.error(e);
     } finally {
@@ -1202,6 +1304,7 @@ export default function SubAdmin() {
     setPhotoEditTitle(photo.title);
     setPhotoEditDesc(photo.desc);
     setPhotoEditBranch(photo.branch || "both");
+    setPhotoEditTagLabel(photo.tagLabel || "원내 인증 전경");
   };
 
   const handleSavePhotoDetails = async (e: FormEvent) => {
@@ -1211,11 +1314,12 @@ export default function SubAdmin() {
       await updateDoc(doc(db, "galleryPhotos", editingPhoto.firestoreId), {
         title: photoEditTitle,
         desc: photoEditDesc,
+        tagLabel: photoEditTagLabel,
         branch: photoEditBranch,
       });
       setPhotos(prev => prev.map((p: any) =>
         p.firestoreId === editingPhoto.firestoreId
-          ? { ...p, title: photoEditTitle, desc: photoEditDesc, branch: photoEditBranch }
+          ? { ...p, title: photoEditTitle, desc: photoEditDesc, tagLabel: photoEditTagLabel, branch: photoEditBranch }
           : p
       ));
       setEditingPhoto(null);
@@ -1466,6 +1570,9 @@ export default function SubAdmin() {
           </button>
           <button onClick={() => setActiveSubTab("subject_images")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "subject_images" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <LayoutGrid className="w-4 h-4" /><span>진료과목 이미지 관리 (5×4)</span>
+          </button>
+          <button onClick={() => setActiveSubTab("intro_images")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "intro_images" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+            <Sparkles className="w-4 h-4" /><span>치료소개 이미지 관리 (4)</span>
           </button>
         </div>
 
@@ -2249,6 +2356,69 @@ export default function SubAdmin() {
           </div>
         )}
 
+        {/* 원내 소개 및 고유치료법 이미지 관리 탭 */}
+        {activeSubTab === "intro_images" && (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-sm text-left relative animate-fadeIn">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            <div className="space-y-1.5 mb-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-widest block">Clinic Introduction Images Manager</span>
+                <h3 className="text-xl font-sans font-extrabold text-[#0F2C59]">원내 소개 및 3대 고유 치료 소개 이미지 관리</h3>
+                <p className="text-xs font-sans text-slate-400">진료철학 및 특권 치료 안내에 즉시 노출되는 4대 이미지를 안전하게 관리 및 교체합니다.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { id: "philosophy_main", tag: "진료철학", name: "진료철학 메인 소개 사진", desc: "진료철학 소개 란 우측 하단 메인 이미지" },
+                { id: "suseung_hwagang", tag: "특권 치료", name: "수승화강 기류 환경 사진", desc: "고유 치료 1열 '수승화강' 전면 이미지" },
+                { id: "wisubae_annyeong", tag: "특권 치료", name: "위수배 안녕 한약 치료 사진", desc: "고유 치료 2열 '위수배 안녕' 전면 이미지" },
+                { id: "daegwanjeol_donggichim", tag: "특권 치료", name: "대관절 동기침법 침술 치료 사진", desc: "고유 치료 3열 '대관절 동기침법' 전면 이미지" }
+              ].map((item) => {
+                const currentImg = introImagesMap[item.id];
+                return (
+                  <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-all">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold bg-[#0F2C59]/10 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">{item.tag}</span>
+                        {introUploadingId === item.id && (
+                          <span className="text-[9px] text-[#0F2C59] font-bold animate-pulse">업로드 중...</span>
+                        )}
+                      </div>
+                      <h4 className="text-sm font-extrabold text-[#2F2D2B] font-sans tracking-tight">{item.name}</h4>
+                      <p className="text-[11px] text-slate-400 leading-normal">{item.desc}</p>
+                      
+                      <div className="aspect-[4/3] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50 relative">
+                        <img 
+                          src={currentImg} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-1.5">
+                      <label className="block w-full text-center py-2 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold font-sans transition-all cursor-pointer shadow-sm">
+                        사진 변경하기
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => handleIntroPhotoChange(item.id, e)} 
+                        />
+                      </label>
+                      {introErrorMap[item.id] && (
+                        <p className="text-[10px] text-red-500 font-bold leading-tight mt-1">{introErrorMap[item.id]}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* 사진 정보 편집 모달 */}
@@ -2278,6 +2448,17 @@ export default function SubAdmin() {
                   <option value="nowon">노원점 단독</option>
                   <option value="guri">구리점 단독</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#475569] mb-1.5">구분 꼬리표 (Tag) *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={photoEditTagLabel} 
+                  onChange={(e) => setPhotoEditTagLabel(e.target.value)} 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold" 
+                  placeholder="예: 대기실 & 접수데스크, 치료실 등" 
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 제목 *</label>

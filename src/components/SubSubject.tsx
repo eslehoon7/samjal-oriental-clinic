@@ -69,6 +69,44 @@ const subjectImageNames: Record<string, string[]> = {
   ]
 };
 
+function ImageWithLoader({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full bg-white overflow-hidden">
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="w-5 h-5 border-2 border-slate-100 border-t-[#0F2C59] rounded-full animate-spin" />
+            <span className="text-[9px] text-slate-400 font-sans tracking-wide">불러오는 중...</span>
+          </div>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setIsLoaded(true)}
+        className={`${className} ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        } transition-opacity duration-300`}
+        referrerPolicy="no-referrer"
+      />
+    </div>
+  );
+}
+
 export default function SubSubject({ setActiveTab }: SubSubjectProps) {
   const [activeSubTab, setActiveSubTab] = useState("spine");
   const [subjectImages, setSubjectImages] = useState<Record<string, string[]>>(defaultSubjectImages);
@@ -81,7 +119,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       const updatedLabels = { ...subjectImageNames };
       snap.forEach(d => {
         const data = d.data();
-        if (d.id) {
+        if (d.id !== "config" && d.id) {
           if (data.images && Array.isArray(data.images)) {
             updatedImages[d.id] = data.images;
           }
@@ -333,11 +371,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                 const label = labelsList[0] || "";
                 return (
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
-                    <img
+                    <ImageWithLoader
                       src={imgUrl}
                       alt={label || `${current.title} 이미지 1`}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      referrerPolicy="no-referrer"
                     />
                     {label && (
                       <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 bg-slate-900/75 backdrop-blur-[2px] flex items-center justify-center px-3 text-center">
@@ -369,11 +406,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                       }
                       return (
                         <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
-                          <img
+                          <ImageWithLoader
                             src={item.url}
                             alt={item.label || `${current.title} 이미지 ${idx + 1}`}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
                           />
                           {item.label && (
                             <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
@@ -391,11 +427,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                     const label = labelsList[idx] || "";
                     return (
                       <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
-                        <img
+                        <ImageWithLoader
                           src={imgUrl}
                           alt={label || `${current.title} 이미지 ${idx + 1}`}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          referrerPolicy="no-referrer"
                         />
                         {label && (
                           <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
