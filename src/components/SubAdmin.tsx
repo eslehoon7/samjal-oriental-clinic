@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent, ChangeEvent } from "react";
+import { useState, useEffect, useRef, FormEvent, ChangeEvent } from "react";
 import { 
   Trash2, Megaphone, CheckCircle, Image, Send, Check,
   Activity, ChevronDown, ChevronUp, User, Sparkles, Pencil, X, Plus, Upload, LayoutGrid
@@ -13,6 +13,8 @@ export default function SubAdmin() {
   const [loginId, setLoginId] = useState("");
   const [loginPw, setLoginPw] = useState("");
   const [loginError, setLoginError] = useState("");
+
+  const labelSaveTimeoutRef = useRef<Record<string, any>>({});
 
   const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images">("notices");
   
@@ -53,8 +55,6 @@ export default function SubAdmin() {
       "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     ],
     detox: [
-      "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-      "/images/clinic_interior_1779805270752.png",
       "/images/samjal_crew_1779805249409.png",
       "/images/samjal_crew_professional_1780495405627.png"
     ]
@@ -85,8 +85,6 @@ export default function SubAdmin() {
       "체질 해독 한약"
     ],
     detox: [
-      "체질 해독 한약",
-      "쾌적한 원내환경",
       "정정 해독 요법",
       "생체 재생 연구팀"
     ]
@@ -96,6 +94,24 @@ export default function SubAdmin() {
   const [subjectUploadingId, setSubjectUploadingId] = useState<string | null>(null);
   const [subjectErrorMap, setSubjectErrorMap] = useState<Record<string, string>>({});
 
+  // iframe 및 가상 브라우저 차단 우회를 위한 토스트 상태 선언
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error" | "info">("success");
+
+  const showToast = (msg: string, type: "success" | "error" | "info" = "success") => {
+    setToastMsg(msg);
+    setToastType(type);
+  };
+
+  useEffect(() => {
+    if (toastMsg) {
+      const timer = setTimeout(() => {
+        setToastMsg(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMsg]);
+
   const loadSubjectImages = async () => {
     try {
       const snap = await getDocs(collection(db, "subject_images"));
@@ -104,14 +120,43 @@ export default function SubAdmin() {
       snap.forEach(d => {
         const data = d.data();
         if (d.id) {
-          if (data.images && Array.isArray(data.images) && data.images.length === 4) {
+          if (data.images && Array.isArray(data.images)) {
             updatedMap[d.id] = data.images;
           }
-          if (data.labels && Array.isArray(data.labels) && data.labels.length === 4) {
+          if (data.labels && Array.isArray(data.labels)) {
             updatedLabelsMap[d.id] = data.labels;
           }
         }
       });
+
+      // Filter out deleted detox images (remove 01 and 04 roll files if 4 are loaded)
+      if (updatedMap["detox"]) {
+        let finalImages = [...updatedMap["detox"]];
+        let finalLabels = [...(updatedLabelsMap["detox"] || [])];
+        if (finalImages.length === 4) {
+          finalImages = [finalImages[1], finalImages[2]];
+          finalLabels = [finalLabels[1], finalLabels[2]];
+          
+          // Clean the firestore database so they are permanently removed
+          try {
+            setDoc(doc(db, "subject_images", "detox"), {
+              id: "detox",
+              images: finalImages,
+              labels: finalLabels,
+              updatedAt: new Date().toISOString()
+            });
+          } catch (dbErr) {
+            console.warn("detox DB 복원 저장 실패:", dbErr);
+          }
+        } else if (finalImages.length > 2) {
+          finalImages = finalImages.slice(0, 2);
+          finalLabels = finalLabels.slice(0, 2);
+        }
+        
+        updatedMap["detox"] = finalImages;
+        updatedLabelsMap["detox"] = finalLabels;
+      }
+
       setSubjectImagesMap(updatedMap);
       setSubjectLabelsMap(updatedLabelsMap);
     } catch (err) {
@@ -120,36 +165,40 @@ export default function SubAdmin() {
   };
 
   const handleSubjectLabelChange = (subjectId: string, imgIdx: number, newLabel: string) => {
+    const dbIdx = imgIdx;
     const currentLabels = [...(subjectLabelsMap[subjectId] || defaultSubjectLabels[subjectId])];
-    currentLabels[imgIdx] = newLabel;
+    currentLabels[dbIdx] = newLabel;
     setSubjectLabelsMap(prev => ({
       ...prev,
       [subjectId]: currentLabels
     }));
-  };
 
-  const saveSubjectLabel = async (subjectId: string, imgIdx: number) => {
-    try {
-      const currentLabels = [...(subjectLabelsMap[subjectId] || defaultSubjectLabels[subjectId])];
-      await setDoc(doc(db, "subject_images", subjectId), {
-        id: subjectId,
-        labels: currentLabels,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      alert(`해당 치료법의 0${imgIdx + 1}번 명칭이 '${currentLabels[imgIdx]}'로 저장되었습니다.`);
-    } catch (err: any) {
-      console.error(err);
-      alert(`명칭 저장 실패: ${err.message || err}`);
+    if (labelSaveTimeoutRef.current[subjectId]) {
+      clearTimeout(labelSaveTimeoutRef.current[subjectId]);
     }
+
+    labelSaveTimeoutRef.current[subjectId] = setTimeout(async () => {
+      try {
+        await setDoc(doc(db, "subject_images", subjectId), {
+          id: subjectId,
+          labels: currentLabels,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        console.log(`Autosaved image label for ${subjectId} at index ${dbIdx}`);
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      }
+    }, 450);
   };
 
   const handleSubjectPhotoChange = async (subjectId: string, imgIdx: number, event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const dbIdx = imgIdx;
     const uploadKey = `${subjectId}_${imgIdx}`;
-    if (file.size > 5 * 1024 * 1024) {
-      setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: "이미지 크기는 최대 5MB까지 가능합니다." }));
+    if (file.size > 10 * 1024 * 1024) {
+      setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: "이미지 크기는 최대 10MB까지 가능합니다." }));
       return;
     }
 
@@ -157,7 +206,8 @@ export default function SubAdmin() {
     setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: "" }));
 
     try {
-      const compressedBase64 = await compressImageFile(file, 1000, 1000, 0.82);
+      // 800px에 퀄리티 0.70으로 실시간 강력 압축하여 전송량을 4배 이상 경량화 (Firestore 1MB 한계 극복 및 초고속 업로드 보장)
+      const compressedBase64 = await compressImageFile(file, 800, 800, 0.70);
       let imageUrl = "";
       let storagePath = "";
 
@@ -195,7 +245,7 @@ export default function SubAdmin() {
       }
 
       const currentImages = [...(subjectImagesMap[subjectId] || defaultSubjectImages[subjectId])];
-      currentImages[imgIdx] = imageUrl;
+      currentImages[dbIdx] = imageUrl;
 
       await setDoc(doc(db, "subject_images", subjectId), {
         id: subjectId,
@@ -207,7 +257,7 @@ export default function SubAdmin() {
          ...prev,
          [subjectId]: currentImages
       }));
-      alert(`해당 치료법의 0${imgIdx + 1}번 사진이 안전하게 변경되었습니다.`);
+      showToast(`해당 치료법의 0${imgIdx + 1}번 사진이 성공적으로 업로드 및 반영되었습니다!`, "success");
     } catch (err: any) {
       console.error(err);
       setSubjectErrorMap(prev => ({ ...prev, [uploadKey]: `업로드 오류: ${err.message || err}` }));
@@ -241,8 +291,8 @@ export default function SubAdmin() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setProfileErrorMap(prev => ({ ...prev, [profileId]: "이미지 크기는 최대 5MB까지 가능합니다." }));
+    if (file.size > 10 * 1024 * 1024) {
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: "이미지 크기는 최대 10MB까지 가능합니다." }));
       return;
     }
 
@@ -250,7 +300,8 @@ export default function SubAdmin() {
     setProfileErrorMap(prev => ({ ...prev, [profileId]: "" }));
 
     try {
-      const compressedBase64 = await compressImageFile(file, 1000, 1000, 0.82);
+      // 800px에 퀄리티 0.70으로 압축률을 획기적으로 향상시켜 네트워크 병목 및 지연을 근본 차단합니다
+      const compressedBase64 = await compressImageFile(file, 800, 800, 0.70);
       let imageUrl = "";
       let storagePath = "";
 
@@ -295,7 +346,7 @@ export default function SubAdmin() {
       }, { merge: true });
 
       setProfilesMap(prev => ({ ...prev, [profileId]: imageUrl }));
-      alert("프로필 사진이 안전하게 변경되었습니다. 전 원내 소개 시스템에 즉시 반영됩니다.");
+      showToast("의료진 프로필 사진이 안심하고 안전하게 업데이트되었습니다!", "success");
     } catch (err: any) {
       console.error(err);
       setProfileErrorMap(prev => ({ ...prev, [profileId]: `업로드 오류: ${err.message || err}` }));
@@ -750,8 +801,8 @@ export default function SubAdmin() {
   const handleNewPhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setPhotoAddError("이미지 크기는 최대 5MB까지 업로드 가능합니다.");
+      if (file.size > 10 * 1024 * 1024) {
+        setPhotoAddError("이미지 크기는 최대 10MB까지 업로드 가능합니다.");
         return;
       }
       setPhotoAddError("");
@@ -785,7 +836,7 @@ export default function SubAdmin() {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const img = new Image();
+        const img = new window.Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
           let width = img.width;
@@ -988,8 +1039,8 @@ export default function SubAdmin() {
   const handleNewActivityUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setActivityAddError("이미지 크기는 최대 5MB까지 업로드 가능합니다.");
+      if (file.size > 10 * 1024 * 1024) {
+        setActivityAddError("이미지 크기는 최대 10MB까지 업로드 가능합니다.");
         return;
       }
       setActivityAddError("");
@@ -1671,7 +1722,7 @@ export default function SubAdmin() {
                             />
                           </label>
                           <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
-                            권장 규격: 16:10 비율 가로형 이미지, 최대 5MB까지 수용<br />
+                            권장 규격: 16:10 비율 가로형 이미지, 최대 10MB까지 수용<br />
                             ※ 사진 미등록 시 기본 병원 현대식 원내 전경 이미지가 자동 배정됩니다.
                           </p>
                         </div>
@@ -2130,7 +2181,8 @@ export default function SubAdmin() {
                 { id: "cancer", name: "한양방 통합 암관리 클리닉" },
                 { id: "detox", name: "항노화 및 생체 디톡스 해독" }
               ].map((subject) => {
-                const imgList = subjectImagesMap[subject.id] || defaultSubjectImages[subject.id];
+                const baseImgList = subjectImagesMap[subject.id] || defaultSubjectImages[subject.id];
+                let imgList = subject.id === "cancer" ? [baseImgList[0]] : baseImgList;
                 return (
                   <div key={subject.id} className="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-slate-50/30">
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -2145,12 +2197,19 @@ export default function SubAdmin() {
                       {imgList.map((url, idx) => {
                         const uploadKey = `${subject.id}_${idx}`;
                         const labelList = subjectLabelsMap[subject.id] || defaultSubjectLabels[subject.id] || [];
-                        const currentLabel = labelList[idx] || "";
+                        let currentLabel = labelList[idx] || "";
+                        
+                        let locationLabel = `0${idx + 1}번 롤 파일`;
+                        if (subject.id === "detox") {
+                          if (idx === 0) locationLabel = "02번 위치 (항노화)";
+                          else if (idx === 1) locationLabel = "03번 위치 (해독)";
+                        }
+
                         return (
                           <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col justify-between hover:shadow-sm transition-all">
                             <div className="space-y-2.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-extrabold bg-slate-100 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">0{idx + 1}번 롤 파일</span>
+                                <span className="text-[10px] font-extrabold bg-slate-100 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">{locationLabel}</span>
                                 {subjectUploadingId === uploadKey && <span className="text-[9px] text-[#0F2C59] font-bold animate-pulse">업로드중...</span>}
                               </div>
                               <div className="aspect-square w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
@@ -2159,23 +2218,14 @@ export default function SubAdmin() {
 
                               {/* 명칭 관리 인풋 필드 */}
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 font-sans">사진 명칭 (0{idx + 1})</label>
-                                <div className="flex gap-1">
-                                  <input 
-                                    type="text" 
-                                    value={currentLabel} 
-                                    onChange={(e) => handleSubjectLabelChange(subject.id, idx, e.target.value)}
-                                    className="flex-1 min-w-0 text-xs px-2 py-1 border border-slate-200 rounded font-sans focus:outline-none focus:border-[#0F2C59] focus:ring-1 focus:ring-[#0F2C59]/10 bg-slate-50/50"
-                                    placeholder="명칭 작성"
-                                  />
-                                  <button 
-                                    type="button"
-                                    onClick={() => saveSubjectLabel(subject.id, idx)}
-                                    className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold font-sans cursor-pointer transition-all shrink-0 shadow-sm"
-                                  >
-                                    저장
-                                  </button>
-                                </div>
+                                <label className="text-[10px] font-bold text-slate-400 font-sans">사진 명칭 ({subject.id === "detox" ? (idx === 0 ? "항노화" : "해독") : `0${idx + 1}`})</label>
+                                <input 
+                                  type="text" 
+                                  value={currentLabel} 
+                                  onChange={(e) => handleSubjectLabelChange(subject.id, idx, e.target.value)}
+                                  className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-lg font-sans focus:outline-none focus:border-[#0F2C59] focus:ring-1 focus:ring-[#0F2C59]/10 bg-slate-50/50"
+                                  placeholder="명칭 작성"
+                                />
                               </div>
                             </div>
 
@@ -2272,7 +2322,7 @@ export default function SubAdmin() {
                     <div className="p-2.5 bg-slate-100 group-hover:bg-indigo-50 text-slate-400 group-hover:text-[#0F2C59] rounded-full transition-colors"><Upload className="w-5 h-5 pointer-events-none" /></div>
                     <div>
                       <p className="text-xs font-bold text-slate-700">원내 로비, 치료실 등 사진 업로드</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">최대 권장 해상도 @2x (최대 5MB)</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">최대 권장 해상도 @2x (최대 10MB)</p>
                     </div>
                     <input type="file" accept="image/*" onChange={handleNewPhotoUpload} className="hidden" />
                   </label>
@@ -2365,6 +2415,18 @@ export default function SubAdmin() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* 실시간 알림 피드백 토스트 모듈 */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-[99999] bg-[#0c2244] border border-slate-700/60 text-white text-xs sm:text-sm font-sans font-bold px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-fadeIn">
+          {toastType === "success" ? (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400 text-xs shrink-0 font-sans">✓</span>
+          ) : (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 text-xs shrink-0 font-sans">!</span>
+          )}
+          <span className="tracking-tight">{toastMsg}</span>
         </div>
       )}
     </div>

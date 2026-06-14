@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { db } from "../firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
 
 interface SubSubjectProps {
   setActiveTab: (tab: string) => void;
@@ -33,8 +33,6 @@ const defaultSubjectImages: Record<string, string[]> = {
     "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
   ],
   detox: [
-    "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-    "/images/clinic_interior_1779805270752.png",
     "/images/samjal_crew_1779805249409.png",
     "/images/samjal_crew_professional_1780495405627.png"
   ]
@@ -66,8 +64,6 @@ const subjectImageNames: Record<string, string[]> = {
     "체질 해독 한약"
   ],
   detox: [
-    "체질 해독 한약",
-    "쾌적한 원내환경",
     "정정 해독 요법",
     "생체 재생 연구팀"
   ]
@@ -86,14 +82,30 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       snap.forEach(d => {
         const data = d.data();
         if (d.id) {
-          if (data.images && Array.isArray(data.images) && data.images.length === 4) {
+          if (data.images && Array.isArray(data.images)) {
             updatedImages[d.id] = data.images;
           }
-          if (data.labels && Array.isArray(data.labels) && data.labels.length === 4) {
+          if (data.labels && Array.isArray(data.labels)) {
             updatedLabels[d.id] = data.labels;
           }
         }
       });
+
+      // Filter out deleted detox images (remove 01 and 04 roll files if 4 are loaded)
+      if (updatedImages["detox"]) {
+        let finalImages = [...updatedImages["detox"]];
+        let finalLabels = [...(updatedLabels["detox"] || [])];
+        if (finalImages.length === 4) {
+          finalImages = [finalImages[1], finalImages[2]];
+          finalLabels = [finalLabels[1], finalLabels[2]];
+        } else if (finalImages.length > 2) {
+          finalImages = finalImages.slice(0, 2);
+          finalLabels = finalLabels.slice(0, 2);
+        }
+        updatedImages["detox"] = finalImages;
+        updatedLabels["detox"] = finalLabels;
+      }
+
       setSubjectImages(updatedImages);
       setSubjectLabels(updatedLabels);
     }, (err) => {
@@ -101,6 +113,28 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    // 모든 주요 이미지를 백그라운드 캐시에 사전 로딩(Preload)하여 탭 클릭 시 즉각 표시되도록 처리
+    const urlsToPreload = new Set<string>();
+    
+    Object.values(defaultSubjectImages).forEach((urls: any) => {
+      (urls as string[]).forEach(url => {
+        if (url) urlsToPreload.add(url);
+      });
+    });
+    
+    Object.values(subjectImages).forEach((urls: any) => {
+      (urls as string[]).forEach(url => {
+        if (url) urlsToPreload.add(url);
+      });
+    });
+    
+    urlsToPreload.forEach(url => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, [subjectImages]);
 
   const subTabs = [
     { id: "spine", label: "통증/관절/척추질환" },
@@ -289,29 +323,93 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             </div>
           </div>
 
-          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 */}
-          <div className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative bg-slate-50/50 p-1.5 border border-slate-200/60">
-            <div className="grid grid-cols-2 gap-1.5">
-              {(subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab]).map((imgUrl, idx) => {
-                const labels = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
-                const label = labels[idx] || `치료 이미지 0${idx + 1}`;
+          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 (통합암관리는 단일 이미지) */}
+          <div key={activeSubTab} className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative justify-center animate-fadeIn">
+            {activeSubTab === "cancer" ? (
+              (() => {
+                const imgList = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
+                const labelsList = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
+                const imgUrl = imgList[0];
+                const label = labelsList[0] || "";
                 return (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm group">
+                  <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
                     <img
                       src={imgUrl}
-                      alt={`${current.title} 이미지 ${idx + 1}`}
+                      alt={label || `${current.title} 이미지 1`}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-slate-950/70 backdrop-blur-[1px] py-1.5 px-2 text-center pointer-events-none transition-all">
-                      <span className="text-white text-[11px] sm:text-xs font-sans font-semibold tracking-tight">
-                        {label}
-                      </span>
-                    </div>
+                    {label && (
+                      <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 bg-slate-900/75 backdrop-blur-[2px] flex items-center justify-center px-3 text-center">
+                        <span className="text-xs sm:text-sm text-white font-sans font-medium tracking-wide leading-none">
+                          {label}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
-              })}
-            </div>
+              })()
+            ) : (
+              <div className="grid grid-cols-2 gap-1.5">
+                {(() => {
+                  const list = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
+                  const labelsList = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
+                  
+                  if (activeSubTab === "detox") {
+                    return [
+                      { url: "", label: "" },
+                      { url: list[0] || "", label: labelsList[0] || "" },
+                      { url: list[1] || "", label: labelsList[1] || "" },
+                      { url: "", label: "" }
+                    ].map((item, idx) => {
+                      if (!item.url) {
+                        return (
+                          <div key={idx} className="relative aspect-square rounded-xl bg-transparent pointer-events-none" />
+                        );
+                      }
+                      return (
+                        <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
+                          <img
+                            src={item.url}
+                            alt={item.label || `${current.title} 이미지 ${idx + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            referrerPolicy="no-referrer"
+                          />
+                          {item.label && (
+                            <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
+                              <span className="text-[10px] sm:text-xs text-white font-sans font-medium tracking-wide leading-none">
+                                {item.label}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  }
+
+                  return list.map((imgUrl, idx) => {
+                    const label = labelsList[idx] || "";
+                    return (
+                      <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
+                        <img
+                          src={imgUrl}
+                          alt={label || `${current.title} 이미지 ${idx + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                          referrerPolicy="no-referrer"
+                        />
+                        {label && (
+                          <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
+                            <span className="text-[10px] sm:text-xs text-white font-sans font-medium tracking-wide leading-none">
+                              {label}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
 
         </div>

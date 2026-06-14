@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Phone, Clock, Navigation, Sparkles, Image, ChevronLeft, ChevronRight } from "lucide-react";
 import { db } from "../firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
+import L from "leaflet";
 
 const defaultItems = [
   {
@@ -49,6 +50,130 @@ const defaultItems = [
 export default function SubLocation() {
   const [activeBranch, setActiveBranch] = useState("nowon");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Leaflet Map Refs & Coordinates
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+
+  const branchCoords: Record<string, [number, number]> = {
+    nowon: [37.6543, 127.0609], // 노원역 6번 출구 덕영빌딩
+    guri: [37.6019, 127.1424]   // 구리시 경춘로 186 삼잘빌딩
+  };
+
+  useEffect(() => {
+    // Dynamically inject Leaflet CSS stylesheet if not present
+    let link = document.getElementById("leaflet-css") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    const coords = activeBranch === "nowon" ? branchCoords.nowon : branchCoords.guri;
+    const branchName = activeBranch === "nowon" ? "삼잘한의원 노원점" : "삼잘한의원 구리본점";
+
+    let map = mapInstanceRef.current;
+
+    if (!map) {
+      // Create fresh map instance
+      map = L.map(mapContainerRef.current, {
+        center: coords,
+        zoom: 17,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      // CartoDB Positron maps styled like clean Naver maps
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        minZoom: 11
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+    } else {
+      // Smoothly pan & fly to new location
+      map.setView(coords, 17, { animate: true, duration: 0.8 });
+    }
+
+    // Reset current marker if exists
+    if (markerRef.current) {
+      markerRef.current.remove();
+    }
+
+    // High fidelity custom NAVER elements styled marker pin
+    const customIcon = L.divIcon({
+      html: `
+        <div class="flex flex-col items-center select-none pointer-events-none" style="transform: translate(-50%, -100%);">
+          <!-- 기포 말풍선 (네이버 고유 핀 테마) -->
+          <div class="bg-white border-2 border-[#03C75A] px-3.5 py-1.5 rounded-xl shadow-lg relative flex flex-col items-center min-w-[130px] animate-bounce">
+            <span class="text-[11px] font-sans font-extrabold text-[#03C75A] tracking-tight leading-none">${branchName}</span>
+            <span class="text-[8px] font-sans text-slate-400 mt-1 leading-none font-medium text-center">삼대째 잘하는 원칙</span>
+            <!-- 말풍선 꼬리 -->
+            <div class="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-r-2 border-b-2 border-[#03C75A] transform rotate-45"></div>
+          </div>
+          <!-- 핀 포인트 -->
+          <div class="relative mt-2">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-[#03C75A]/25 rounded-full animate-ping duration-1000"></div>
+            <div class="w-7 h-7 rounded-full bg-[#03C75A] shadow-md flex items-center justify-center border-2 border-white">
+              <div class="w-2 h-2 rounded-full bg-white"></div>
+            </div>
+          </div>
+        </div>
+      `,
+      className: "custom-naver-marker-wrapper",
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
+    });
+
+    const newMarker = L.marker(coords, { icon: customIcon }).addTo(map);
+    markerRef.current = newMarker;
+
+    // Fast container bounds update
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
+
+  }, [activeBranch]);
+
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleZoomIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.zoomIn();
+    }
+  };
+
+  const handleZoomOut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.zoomOut();
+    }
+  };
+
+  const handleRecenter = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (mapInstanceRef.current) {
+      const coords = activeBranch === "nowon" ? branchCoords.nowon : branchCoords.guri;
+      mapInstanceRef.current.setView(coords, 17, { animate: true, duration: 0.6 });
+    }
+  };
 
   // Profiles State
   const [profiles, setProfiles] = useState<Record<string, string>>({
@@ -211,7 +336,8 @@ export default function SubLocation() {
         "직장인을 위한 평일 야간진료 프로그램 개설",
         "최첨단 에어 샤워 및 쾌적한 전용 메디컬 라운지 구비"
       ],
-      image: "/images/clinic_interior_modern_1780495390125.png"
+      image: "/images/clinic_interior_modern_1780495390125.png",
+      naverMapUrl: "https://naver.me/xtNNu5e6"
     },
     guri: {
       name: "삼잘한의원 구리본점 (대표원장 제정진)",
@@ -240,7 +366,7 @@ export default function SubLocation() {
           "경희대 한의대 학사",
           "경희대 한의대 임상한의학 박사",
           "한체대 대학원 체육학 박사",
-          "경희대학교 한방병원 한방내과 レ지던트 이수",
+          "경희대학교 한방병원 한방내과 레지던트 이수",
           "올림픽/아시아게임 패럴림픽 국가대표팀 주치의<br>['24파리, ‘22항저우, ‘22도쿄, ‘18평창, ‘16리우]",
           "삼잘에센셜 처방 개발 고문",
           "전)상지대 한의대 교수",
@@ -265,7 +391,8 @@ export default function SubLocation() {
         "구리점 차량 전용 자주식 파킹 서비스 완비 (무료 주차 제공)",
         "경희대 내과 전문 원장단의 오장육부 소화기 밀착 클리닉 운영"
       ],
-      image: "/images/samjal_crew_professional_1780495405627.png"
+      image: "/images/samjal_crew_professional_1780495405627.png",
+      naverMapUrl: "https://map.naver.com/v5/search/%EA%B2%BD%EA%B8%B0%EB%8F%84%20%EA%B5%AC%EB%A6%AC%EC%8B%9C%20%EA%B2%BD%EC%B6%98%EB%A1%9C%20186"
     }
   };
 
@@ -345,15 +472,18 @@ export default function SubLocation() {
             </div>
           </div>
 
+
+
           {/* 연구 분야 및 원장 약력 2단 그리드 (사용자 시안 정밀 매칭) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 pt-4 relative z-10 max-w-5xl mx-auto w-full">
             {/* 좌측 영역: 원장 프로필 이미지 (lg:col-span-5) */}
             <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-slate-50 border border-slate-200">
+              <div className="w-full aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-slate-50 border border-slate-200">
                 <img
+                  key={current.doctor.image}
                   src={current.doctor.image}
                   alt={current.doctor.name}
-                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1 animate-fadeIn"
+                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 animate-fadeIn"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -466,11 +596,11 @@ export default function SubLocation() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 pt-12 relative z-10 border-t border-slate-200 mt-12 animate-fadeIn max-w-5xl mx-auto w-full">
               {/* 좌측 영역: 원장 프로필 이미지 (lg:col-span-5) */}
               <div className="lg:col-span-5 flex flex-col items-center">
-                <div className="w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-slate-50 border border-slate-200">
+                <div className="w-full aspect-[4/5] rounded-[24px] overflow-hidden select-none relative flex items-center justify-center bg-slate-50 border border-slate-200">
                   <img
                     src={profiles.je_hyunyoung}
                     alt="제현영 원장"
-                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 lg:translate-x-3 translate-x-1"
+                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                   />
                 </div>
@@ -773,14 +903,72 @@ export default function SubLocation() {
 
           {/* 지점 사진 및 가상 약도 기와 타일 디자인 */}
           <div className="lg:col-span-6 flex flex-col justify-between gap-6">
-            <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-sm relative">
-              <img
-                src={current.image}
-                alt={current.name}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+            {/* 실질적으로 보이는 네이버 지도 렌더러 영역 */}
+            <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-sm relative bg-[#F4F4F2] group transition-all duration-300 hover:border-[#03C75A]/60 select-none">
+              {/* 실제 Leaflet 지도가 채워지는 DIV */}
+              <div 
+                ref={mapContainerRef} 
+                className="absolute inset-0 w-full h-full z-0" 
               />
-              <div className="absolute inset-0 bg-slate-900/5 hover:bg-transparent transition-all" />
+              
+              {/* 네이버 지도 인터랙션 UI 레이아웃 소스 */}
+              {/* 우측 수직 컨트롤 피들 (대형 줌 및 홈 버튼 추가) */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-lg shadow-md flex flex-col divide-y divide-slate-100 z-10 w-8 overflow-hidden">
+                <button 
+                  onClick={handleZoomIn}
+                  className="h-8 flex items-center justify-center text-slate-800 font-bold hover:bg-slate-50 transition-colors text-sm font-mono cursor-pointer active:bg-slate-100"
+                  title="확대"
+                >
+                  +
+                </button>
+                <button 
+                  onClick={handleZoomOut}
+                  className="h-8 flex items-center justify-center text-slate-800 font-bold hover:bg-slate-50 transition-colors text-sm font-mono cursor-pointer active:bg-slate-100"
+                  title="축소"
+                >
+                  -
+                </button>
+                <button 
+                  onClick={handleRecenter}
+                  className="h-8 flex items-center justify-center text-[#03C75A] hover:bg-slate-50 transition-colors cursor-pointer active:bg-slate-100"
+                  title="지점 위치로 이동"
+                >
+                  <Navigation className="w-3.5 h-3.5 fill-[#03C75A] transform rotate-45 -translate-x-[0.5px] translate-y-[0.5px]" />
+                </button>
+              </div>
+
+              {/* 좌상단 로고 테두리 */}
+              <div 
+                onClick={() => window.open(current.naverMapUrl, "_blank")}
+                className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm flex items-center gap-2 z-10 font-sans cursor-pointer hover:bg-slate-50 active:scale-95 transition-all animate-pulse"
+              >
+                <div className="w-4 h-4 rounded-sm bg-[#03C75A] flex items-center justify-center text-white font-extrabold text-[9px] font-sans">
+                  N
+                </div>
+                <div className="text-left flex items-center gap-1.5">
+                  <p className="text-[10px] font-sans font-extrabold text-slate-800 leading-none">NAVER 지도</p>
+                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                  <p className="text-[9px] font-sans text-[#03C75A] font-bold leading-none">크게보기</p>
+                </div>
+              </div>
+
+              {/* 하단 작가 정보 및 Naver 저작권 표기 */}
+              <div className="absolute bottom-1.5 left-3 text-[9px] font-sans text-slate-400 font-medium z-10 pointer-events-none select-none backdrop-blur-[1px] bg-white/40 px-1 rounded-xs">
+                <span className="text-[#03C75A] font-extrabold tracking-wider mr-1.5">NAVER</span>
+                <span>© NAVER Corp.</span>
+              </div>
+
+              {/* 우측 하단 200m 축척선 및 200:1 (1:200) 비율 표시 */}
+              <div className="absolute bottom-1.5 right-3 flex flex-col items-end z-10 pointer-events-none select-none font-sans backdrop-blur-[1px] bg-white/40 px-1 rounded-xs">
+                <span className="text-[8px] text-slate-500 font-bold leading-none mb-0.5">200m</span>
+                <div className="flex items-center">
+                  <div className="w-[1px] h-1.5 bg-slate-400" />
+                  <div className="w-12 h-[1px] bg-slate-400" />
+                  <div className="w-[1px] h-1.5 bg-slate-400" />
+                </div>
+                <span className="text-[7.5px] text-slate-400 mt-0.5 leading-none">1:200</span>
+              </div>
+
             </div>
 
             {/* 지점 특성 칩 그리드 */}
@@ -808,13 +996,12 @@ export default function SubLocation() {
               </a>
               <button
                 onClick={() => {
-                  const mapQuery = encodeURIComponent(current.address);
-                  window.open(`https://map.kakao.com/?q=${mapQuery}`, "_blank");
+                  window.open(current.naverMapUrl, "_blank");
                 }}
-                className="flex-1 text-center py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-lg text-sm font-sans tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 text-center py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg text-sm font-sans tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Navigation className="w-4 h-4 text-slate-600" />
-                카카오맵 길찾기
+                <Navigation className="w-4 h-4 text-[#03C75A]" />
+                네이버지도 길찾기
               </button>
             </div>
           </div>

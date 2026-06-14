@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import fs from "fs";
@@ -13,24 +14,20 @@ app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ limit: "15mb", extended: true }));
 
 // Server-side Firebase Initialization
-const fbApiKey = process.env.VITE_FIREBASE_API_KEY;
 let serverStorage: any = null;
 
-if (fbApiKey) {
-  try {
-    const fbApp = initFirebaseApp({
-      apiKey: fbApiKey,
-      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.VITE_FIREBASE_APP_ID,
-    });
+try {
+  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+  if (fs.existsSync(configPath)) {
+    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    const fbApp = initFirebaseApp(firebaseConfig);
     serverStorage = getFirebaseStorage(fbApp);
-    console.log("Server-side Firebase Storage initialized successfully.");
-  } catch (err) {
-    console.warn("Failed to initialize server-side Firebase app:", err);
+    console.log("Server-side Firebase Storage initialized successfully from firebase-applet-config.json:", firebaseConfig.projectId);
+  } else {
+    console.warn("firebase-applet-config.json not found inside server.ts!");
   }
+} catch (err) {
+  console.warn("Failed to initialize server-side Firebase app from config file:", err);
 }
 
 // 임시 인메모리 예약 저장소 (관리용 데모)
