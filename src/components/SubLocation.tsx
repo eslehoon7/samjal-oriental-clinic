@@ -406,9 +406,9 @@ export default function SubLocation() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <img
-            src="/images/samjal_crew_professional_1780495405627.png"
+            src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EA%B5%AC%EB%A6%AC%EC%A0%901.jpg?alt=media&token=72bf4426-d021-461a-9672-c311b15f9a0c"
             alt="지점안내 배경"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover blur-[5px]"
             referrerPolicy="no-referrer"
           />
         </div>

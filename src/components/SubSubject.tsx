@@ -260,9 +260,9 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <img
-            src="/images/professional_clean_acupuncture_1780497559621.png"
+            src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EB%85%B8%EC%9B%90%EC%A0%903.jpg?alt=media&token=424af5d4-63d4-4bd6-9106-b4938ff4edcd"
             alt="진료과목 배경"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover blur-[5px]"
             referrerPolicy="no-referrer"
           />
         </div>

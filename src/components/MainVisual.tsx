@@ -11,54 +11,37 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
 
   const slides = [
     {
-      image: "/images/clinic_interior_modern_1780495390125.png",
-      title: "몸이 스스로 치유하는 자생력",
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%ED%95%9C%EC%9D%98%EC%82%AC%EB%8B%98%20%EB%8B%A8%EC%B2%B4%EC%82%AC%EC%A7%84.png?alt=media&token=1170e9aa-2a6b-4373-9316-ef249cc40392",
+      title: "건강의 기본기 잘하기, 잘먹기, 잘내보내기",
       subtitle: "전통 한방 명가, 삼잘한의원",
       desc: (
         <>
-          수면, 소화, 배설의 근본적 균형(삼잘)을 통해 질병 이전의 건강한 활력을 온전히 복원해 드립니다.
+          기본을 다시 생각하는 공간, 삼잘한의원입니다.
         </>
       ),
       linkTab: "intro",
       subTab: "philosophy",
     },
     {
-      image: "/images/samjal_crew_professional_1780495405627.png",
-      title: "대한민국 국가대표 주치의 의료진",
-      subtitle: "신뢰와 전문성으로 답하는 정성진료",
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A91_%EC%88%98%EC%9B%90%EB%8B%A8.png?alt=media&token=9617779b-d2e3-4f90-b089-26c3fd436d1a",
+      title: "한약과 현대과학적 추출법",
+      subtitle: "첨단 한제 연구 기술",
       desc: (
         <>
-          올림픽 국가대표 및 패럴림픽 대표팀 주치의 출신 <br />
-          전준영·제정진 원장 등 각 분야 최고 권위의 의료진이 케어합니다.
+          첨단 제약기술이 만나 빚어진 삼잘한의원 고유의 치료제
         </>
       ),
       linkTab: "intro",
       subTab: "treatments",
+      positionClass: "object-[70%_80%]",
     },
     {
-      image: "/images/professional_clean_acupuncture_1780497559621.png",
-      title: "대관절 동기침법 & 한방 골관절 집중치료",
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EB%8C%80%EC%99%B8%ED%99%9C%EB%8F%991_18%ED%95%AD%EC%A0%80%EC%9A%B0.jpg?alt=media&token=6c8894f2-6aa3-48a6-a7c1-bdbfd6aee6ba",
+      title: "경력으로 검증된 전문성",
       subtitle: "신경과 심부 고질 깊숙한 통증의 원인 교정",
-      desc: (
-        <>
-          단순 통증 완화를 넘어, 꼬여 있는 골반경락 및 심부 관절의 정렬을<br />
-          그 현장에서 바로 회복시키는 특수 침법입니다.
-        </>
-      ),
       linkTab: "intro",
       subTab: "activities",
-    },
-    {
-      image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-      title: "식약처 인증 무독성 에센셜 한약제조",
-      subtitle: "전문가 3인이 수공으로 조제하는 최고의 한약",
-      desc: (
-        <>
-          철저한 가택 중탕 제조 방식으로 유효 한방 약성을 최대로 보존하며<br />
-          장과 자궁, 위를 안전하게 회복시킵니다.
-        </>
-      ),
-      linkTab: "subject",
+      positionClass: "object-[center_30%]",
     },
   ];
 
@@ -107,7 +90,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
               onClick={() => handleSlideClick(slide)}
               src={slide.image}
               alt={slide.title}
-              className="w-full h-full object-cover transition-transform duration-[4000ms] ease-out cursor-pointer"
+              className={`w-full h-full object-cover ${slide.positionClass || "object-center"} transition-transform duration-[4000ms] ease-out cursor-pointer`}
               style={{ transform: idx === currentIndex ? "scale(1.05)" : "scale(1)" }}
               referrerPolicy="no-referrer"
             />
@@ -121,9 +104,11 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
                   <h2 className="text-xl sm:text-3xl md:text-[44px] lg:text-5xl font-sans text-white font-bold tracking-tight drop-shadow-md whitespace-nowrap">
                     {slide.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed font-light drop-shadow">
-                    {slide.desc}
-                  </p>
+                  {slide.desc && (
+                    <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed font-light drop-shadow">
+                      {slide.desc}
+                    </p>
+                  )}
                   <div className="pt-4 flex flex-wrap gap-4">
                     <button
                       onClick={() => handleSlideClick(slide)}

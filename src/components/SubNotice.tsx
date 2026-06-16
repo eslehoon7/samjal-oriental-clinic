@@ -136,9 +136,9 @@ export default function SubNotice() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <img
-            src="/images/hygienic_premium_hanbang_herbal_1780497683155.png"
+            src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=6996a5f6-a2fd-4e77-b6ad-33e58d6bfdd0"
             alt="공지사항 배경"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover blur-[5px]"
             referrerPolicy="no-referrer"
           />
         </div>

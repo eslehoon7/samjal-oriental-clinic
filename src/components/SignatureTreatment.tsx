@@ -15,7 +15,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
       targetSubTab: "treatments"
     },
     {
-      image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=6996a5f6-a2fd-4e77-b6ad-33e58d6bfdd0",
       category: "프리미엄 지상 조제",
       title: "프리미엄 에센셜 한약",
       desc: "전문가 3인의 협업으로 탄생한 프리미엄 치료제",
@@ -23,7 +23,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
       targetSubTab: "treatments"
     },
     {
-      image: "/images/samjal_crew_professional_1780495405627.png",
+      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%ED%95%9C%EC%9D%98%EC%82%AC%EB%8B%98%20%EB%8B%A8%EC%B2%B4%EC%82%AC%EC%A7%84.png?alt=media&token=1170e9aa-2a6b-4373-9316-ef249cc40392",
       category: "국가대표 주치의 사단",
       title: "학술 연구단",
       desc: "체계적인 연구와 진심어린 치료",

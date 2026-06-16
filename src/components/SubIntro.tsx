@@ -150,9 +150,9 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
         <div className="absolute inset-0 z-0 flex items-center justify-center bg-white">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
           <CleanLoadImage
-            src="/images/clinic_interior_modern_1780495390125.png"
+            src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EA%B5%AC%EB%A6%AC%EC%A0%902.jpg?alt=media&token=ff779945-f325-4a23-8c2a-07fa15e97b23"
             alt="삼잘한의원 소개 배경"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-[50%_55%] blur-[5px]"
           />
         </div>
 
