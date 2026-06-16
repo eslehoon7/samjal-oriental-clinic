@@ -7,7 +7,7 @@ interface SignatureTreatmentProps {
 export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: SignatureTreatmentProps) {
   const treatments = [
     {
-      image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+      image: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97",
       category: "대관절 동기침법",
       title: "대관절 동기침법",
       desc: "심부근육의 활성을 높이는 대관절 동기침법",

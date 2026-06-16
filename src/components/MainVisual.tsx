@@ -9,7 +9,6 @@ interface MainVisualProps {
 export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 생성 완료한 이미지 경로 매칭
   const slides = [
     {
       image: "/images/clinic_interior_modern_1780495390125.png",

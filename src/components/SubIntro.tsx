@@ -1,7 +1,40 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { Award, Star, Compass, CalendarCheck, ShieldCheck, GraduationCap, Beaker, Sparkles, BookOpen } from "lucide-react";
+import { collection, onSnapshot } from "firebase/firestore";
+
+interface CleanLoadImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+}
+
+function CleanLoadImage({ src, alt, className = "" }: CleanLoadImageProps) {
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    setLoading(true);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full bg-white flex items-center justify-center overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 bg-white flex items-center justify-center z-10 w-full h-full">
+          <div className="w-6 h-6 border-2 border-slate-100 border-t-[#0F2C59] rounded-full animate-spin" />
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} transition-opacity duration-300 ${
+          loading ? "opacity-0" : "opacity-100"
+        }`}
+        referrerPolicy="no-referrer"
+        onLoad={() => setLoading(false)}
+        onError={() => setLoading(false)}
+      />
+    </div>
+  );
+}
 
 interface SubIntroProps {
   subTab: string;
@@ -38,12 +71,12 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
   const [introImages, setIntroImages] = useState<Record<string, string>>({
     philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
     suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
-    wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
+    wisubae_annyeong: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702",
+    wisubae_essential: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013",
+    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
   });
 
   useEffect(() => {
-    // 앞으로 대외활동은 추가 관리가 불필요하므로 최신의 정적 데이터(파리 올림픽 새사진 포함)를 다이렉트로 연계합니다.
     setActivities(defaultActivities);
   }, []);
 
@@ -70,12 +103,29 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
       const updated = {
         philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
         suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
-        wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
+        wisubae_annyeong: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702",
+        wisubae_essential: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013",
+        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
       };
       snap.forEach(d => {
         if (d.id && d.data().image) {
-          updated[d.id as keyof typeof updated] = d.data().image;
+          let imgUrl = d.data().image;
+          if (d.id === "daegwanjeol_donggichim") {
+            if (imgUrl.includes("samjal-oriental-clinic.firebasestorage.app") || imgUrl.includes("%EB%8C%80%EA%B4%80%EC%A0%88") || imgUrl.includes("%EB%8F%99%EA%B8%B0")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97";
+            }
+          }
+          if (d.id === "wisubae_annyeong") {
+            if (!imgUrl.includes("%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95") && !imgUrl.startsWith("data:image")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702";
+            }
+          }
+          if (d.id === "wisubae_essential") {
+            if (!imgUrl.includes("%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93") && !imgUrl.startsWith("data:image")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013";
+            }
+          }
+          updated[d.id as keyof typeof updated] = imgUrl;
         }
       });
       setIntroImages(updated);
@@ -95,15 +145,14 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
   return (
     <div id="intro-content-view" className="bg-white min-h-screen">
       
-      {/* 서브 메인 비주얼 배너 섹션 (Main Section) */}
+      {/* 서브 메인 비주얼 배너 섹션 */}
       <div className="relative w-full h-[380px] sm:h-[480px] bg-[#0F172A] overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 flex items-center justify-center bg-white">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 to-[#0F2C59]/45 mix-blend-multiply z-10" />
-          <img
+          <CleanLoadImage
             src="/images/clinic_interior_modern_1780495390125.png"
             alt="삼잘한의원 소개 배경"
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         </div>
 
@@ -156,13 +205,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     &ldquo;몸의 자생력을 일깨워 <br /> 건강함을 되찾아 드립니다&rdquo;
                   </h3>
                   <div className="w-12 h-1 bg-[#0F2C59]" />
-                  <p className="text-base sm:text-lg font-sans text-slate-600 leading-relaxed">
+                  <p className="text-base sm:text-lg font-sans text-slate-600 leading-relaxed font-light">
                     안녕하세요, 삼잘한의원 원장단입니다. <br />
                     경희대 동방의학 원리를 깊게 이수한 <strong className="font-bold text-[#0F172A]">전문의들의 노하우</strong>와,<br />
                     세계적인 무대에서 태극전사들을 치료한 <strong className="font-bold text-[#0F172A]">임상 통계기술</strong>을 결합하여<br />
                     <strong className="font-bold text-[#0F172A]">근본적인 치료 대안</strong>을 제시합니다.
                   </p>
-                  <p className="text-sm font-sans text-slate-500 leading-relaxed">
+                  <p className="text-sm font-sans text-slate-500 leading-relaxed font-light">
                     우리 인체는 스스로 복원하고 이겨내는 <strong className="font-bold text-[#0F172A]">무한한 잠재 능력(자생력)</strong>이 구비되어 있습니다.<br />
                     하지만 수면 상태가 어지럽고, 비위에 거친 가스가 차 소화가 불안하며, <br />
                     배하수 장벽이 해독되지 못하면 아무리 훌륭한 신약을 복용해도 <br />
@@ -172,11 +221,10 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   </p>
                 </div>
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow-lg">
-                  <img
+                  <CleanLoadImage
                     src={introImages.philosophy_main}
                     alt="진료철학 메인 이미지"
                     className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
                   />
                 </div>
               </div>
@@ -184,12 +232,11 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
               {/* 삼잘 특권 자인 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-slate-200 w-full divide-y md:divide-y-0 md:divide-x divide-slate-200 rounded-none pt-0 mt-16 bg-white shadow-md overflow-hidden animate-fadeIn">
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
-                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
-                    <img 
+                   <div className="w-full h-64 sm:h-72 overflow-hidden bg-white relative">
+                    <CleanLoadImage 
                       src={introImages.suseung_hwagang} 
                       alt="수승화강 기류 환경" 
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
                   <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
@@ -206,14 +253,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 </div>
                 
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
-                  <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
-                    <img 
+                  <div className="w-full h-64 sm:h-72 overflow-hidden bg-white relative">
+                    <CleanLoadImage 
                       src={introImages.wisubae_annyeong} 
                       alt="위수배 안녕 한약 치료" 
-                      className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover object-[center_70%] filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20 pointer-events-none" />
                   </div>
                   <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
@@ -229,14 +275,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 </div>
 
                 <div className="flex flex-col hover:bg-slate-50/65 hover:shadow-lg transition-all duration-300 group overflow-hidden">
-                  <div className="w-full h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
-                    <img 
+                  <div className="w-full h-64 sm:h-72 overflow-hidden bg-white relative">
+                    <CleanLoadImage 
                       src={introImages.daegwanjeol_donggichim} 
                       alt="대관절 동기침법 침술 치료" 
                       className="w-full h-full object-cover filter contrast-125 brightness-95 transition-all duration-700 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20 pointer-events-none" />
                   </div>
                   <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
@@ -274,7 +319,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                         대관절 동기침법(고유의 침술)
                       </h4>
                       <p className="text-sm font-sans text-slate-600 leading-relaxed pl-4">
-                        경희대병원 출신 한의학 박사이자 패럴림픽 국가대표팀 주치의까지 역임한 제정진 원장이 30년이 넘는 임상경험을 통해서 창안하고 검증한 고유의 침법입니다. 자세분석과 부하검사를 통해 저활성 근육을 진단하고, 장침을 활용해 체간과 주요 관절부위의 속근육을 활성화하는 효과가 있습니다. 결과적으로 신진대사가 원활해지고 관절의 안정성이 향상되어 통증질환 뿐 아니라 내과질환에도 효과적입니다.
+                        경희대병원 출신 한의학 박사이자 패럴림픽 국가대표팀 주치의까지 역임한 제정진 원장이 30년이 넘는 임상경험을 통해서 창안하고 검증한 고유의 침법입니다. 자세분석과 부하검사를 통해 저활성 근육을 진단하고, 장침을 활용해 체간 and 주요 관절부위의 속근육을 활성화하는 효과가 있습니다. 결과적으로 신진대사가 원활해지고 관절의 안정성이 향상되어 통증질환 뿐 아니라 내과질환에도 효과적입니다.
                       </p>
                     </div>
 
@@ -287,26 +332,22 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                         패럴림픽 국가대표팀 주치의를 역임한 제정진 박사, 경희대병원 출신의 한방재활의학 전문의 전준영 원장, 천연물과학 전문가이자 팜힐연구소 대표 김유정 박사. 전문가 3인이 공동연구해 창안한 삼잘한의원 고유의 치료제입니다. 질환에 따라 가장 효과적인 약재 선별부터 원산지와 품질관리, 성분에 따른 최적의 추출법 적용, 생체이용률 향상을 위한 첨단 제약기술인 SEDDS적용까지 세심하게 설계하고 정성껏 조제하였습니다.
                       </p>
                     </div>
-
-
                   </div>
                 </div>
 
                 <div className="lg:col-span-5 space-y-6">
-                  <div className="rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                    <img
-                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58"
+                  <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                    <CleanLoadImage
+                      src="https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
                       alt="대관절 동기침법 치료 정경"
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div className="rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                    <img
-                      src="/images/hygienic_premium_hanbang_herbal_1780497683155.png"
+                  <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                    <CleanLoadImage
+                      src={introImages.wisubae_essential}
                       alt="에센셜 프리미엄 한약재"
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover object-[center_80%]"
                     />
                   </div>
                 </div>
@@ -332,16 +373,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <div className="w-full max-w-5xl mx-auto h-[1px] bg-slate-200" />
 
                 <div className="bg-transparent p-0 max-w-5xl mx-auto flex flex-col md:flex-row gap-12 items-center">
-                  <div className="w-full md:w-1/2 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0 shadow-sm">
-                    <img 
+                  <div className="w-full md:w-1/2 aspect-[3/4] rounded-2xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
+                    <CleanLoadImage 
                       src={kimPhoto} 
                       alt="김유정 박사 팜힐 천연물 제형 연구소" 
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
-
-
 
                   <div className="w-full md:w-1/2 space-y-6">
                     <div className="space-y-3">
@@ -463,9 +501,9 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 </h3>
               </div>
               
-              {/* 대외활동 타임라인 레이아웃 (사용자 스크린샷 100% 매치) */}
+              {/* 대외활동 타임라인 레이아웃 */}
               <div className="relative max-w-5xl mx-auto py-12 px-4">
-                {/* 세로 중앙 관통선 (데스크톱) / 왼쪽 정렬선 (모바일) */}
+                {/* 세로 중앙 관통선 */}
                 <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-[1px] bg-slate-200 -translate-x-1/2 z-0" />
                 
                 <div className="space-y-24 relative z-10">
@@ -479,16 +517,15 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                             {/* 이미지 카드 (왼쪽) */}
                             <div className="flex md:justify-end order-1 pl-12 md:pl-0 w-full">
                               <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                                <img
+                                <CleanLoadImage
                                   src={act.image || "/images/clinic_interior_modern_1780495390125.png"}
                                   alt={act.title}
                                   className="w-full h-full object-cover object-top"
-                                  referrerPolicy="no-referrer"
                                 />
                               </div>
                             </div>
                             
-                            {/* 중앙 타임라인 도트 (절대 위치) */}
+                            {/* 중앙 타임라인 도트 */}
                             <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
                               <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
                                 <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
@@ -523,7 +560,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                               </p>
                             </div>
                             
-                            {/* 중앙 타임라인 도트 (절대 위치) */}
+                            {/* 중앙 타임라인 도트 */}
                             <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
                               <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
                                 <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
@@ -533,11 +570,10 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                             {/* 이미지 카드 (오른쪽) */}
                             <div className="flex md:justify-start order-1 md:order-2 pl-12 md:pl-0 w-full">
                               <div className="w-full max-w-lg aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                                <img
+                                <CleanLoadImage
                                   src={act.image || "/images/samjal_crew_professional_1780495405627.png"}
                                   alt={act.title}
                                   className="w-full h-full object-cover object-[center_30%]"
-                                  referrerPolicy="no-referrer"
                                 />
                               </div>
                             </div>

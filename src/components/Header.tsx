@@ -56,12 +56,15 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => handleMenuClick("home")}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 group-hover:rotate-180 ${
-              isTransparentMode
-                ? "bg-white/10 border-white/20"
-                : "bg-[#0F2C59]/10 border-[#0F2C59]/30"
-            }`}>
-              <span className={`text-xl font-sans font-semibold transition-colors duration-300 ${isTransparentMode ? "text-white" : "text-[#0F2C59]"}`}>S</span>
+            <div className="w-[52px] h-[52px] flex items-center justify-center transition-all duration-300">
+              <img
+                src="https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%82%BC%EC%9E%98%ED%95%9C%EC%9D%98%EC%9B%90%20%EB%A1%9C%EA%B3%A0-1.png?alt=media&token=92d02b25-8829-4069-8682-67340635f30a"
+                alt="삼잘한의원 로고"
+                className={`w-full h-full object-contain transition-all duration-300 ${
+                  isTransparentMode ? "brightness-0 invert" : "brightness-0"
+                }`}
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <h1 className={`text-xl sm:text-2xl font-sans font-bold tracking-widest leading-none transition-colors duration-300 ${isTransparentMode ? "text-white" : "text-[#0F172A]"}`}>

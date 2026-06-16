@@ -22,8 +22,9 @@ export default function SubAdmin() {
   const [introImagesMap, setIntroImagesMap] = useState<Record<string, string>>({
     philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
     suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
-    wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+    wisubae_annyeong: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702",
+    wisubae_essential: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013",
+    daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97",
   });
   const [introUploadingId, setIntroUploadingId] = useState<string | null>(null);
   const [introErrorMap, setIntroErrorMap] = useState<Record<string, string>>({});
@@ -41,7 +42,7 @@ export default function SubAdmin() {
   // Subject Images State
   const defaultSubjectImages: Record<string, string[]> = {
     spine: [
-      "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+      "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97",
       "/images/professional_clean_acupuncture_1780497559621.png",
       "/images/clinic_interior_1779805270752.png",
       "/images/samjal_crew_professional_1780495405627.png"
@@ -282,13 +283,30 @@ export default function SubAdmin() {
       const updatedMap = {
         philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
         suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
-        wisubae_annyeong: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/site-images%2Fcure%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=f5b654c6-5108-47ba-8770-eafa0845ba58",
+        wisubae_annyeong: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702",
+        wisubae_essential: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013",
+        daegwanjeol_donggichim: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97",
       };
       snap.forEach(d => {
         const val = d.data();
         if (d.id && val.image) {
-          updatedMap[d.id as keyof typeof updatedMap] = val.image;
+          let imgUrl = val.image;
+          if (d.id === "daegwanjeol_donggichim") {
+            if (imgUrl.includes("samjal-oriental-clinic.firebasestorage.app") || imgUrl.includes("%EB%8C%80%EA%B4%80%EC%A0%88") || imgUrl.includes("%EB%8F%99%EB%B8%B0")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97";
+            }
+          }
+          if (d.id === "wisubae_annyeong") {
+            if (!imgUrl.includes("%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95") && !imgUrl.startsWith("data:image")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%9C%84%EC%88%98%EB%B0%B0%EC%95%88%EB%85%95.png?alt=media&token=446f64d8-09f6-4b0c-a6f3-5e98feb70702";
+            }
+          }
+          if (d.id === "wisubae_essential") {
+            if (!imgUrl.includes("%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93") && !imgUrl.startsWith("data:image")) {
+              imgUrl = "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=15c1de98-5013-4773-9519-927c5dbd9013";
+            }
+          }
+          updatedMap[d.id as keyof typeof updatedMap] = imgUrl;
         }
       });
       setIntroImagesMap(updatedMap);
@@ -2368,11 +2386,12 @@ export default function SubAdmin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
               {[
                 { id: "philosophy_main", tag: "진료철학", name: "진료철학 메인 소개 사진", desc: "진료철학 소개 란 우측 하단 메인 이미지" },
                 { id: "suseung_hwagang", tag: "특권 치료", name: "수승화강 기류 환경 사진", desc: "고유 치료 1열 '수승화강' 전면 이미지" },
                 { id: "wisubae_annyeong", tag: "특권 치료", name: "위수배 안녕 한약 치료 사진", desc: "고유 치료 2열 '위수배 안녕' 전면 이미지" },
+                { id: "wisubae_essential", tag: "고유치료", name: "삼잘에센셜 한약재 사진", desc: "고유치료법 탭 '삼잘에센셜' 소개 이미지" },
                 { id: "daegwanjeol_donggichim", tag: "특권 치료", name: "대관절 동기침법 침술 치료 사진", desc: "고유 치료 3열 '대관절 동기침법' 전면 이미지" }
               ].map((item) => {
                 const currentImg = introImagesMap[item.id];
@@ -2392,7 +2411,7 @@ export default function SubAdmin() {
                         <img 
                           src={currentImg} 
                           alt={item.name} 
-                          className="w-full h-full object-cover" 
+                          className={`w-full h-full object-cover ${item.id === 'wisubae_annyeong' ? 'object-[center_70%]' : item.id === 'wisubae_essential' ? 'object-[center_80%]' : ''}`} 
                           referrerPolicy="no-referrer" 
                         />
                       </div>
