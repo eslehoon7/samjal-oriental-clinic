@@ -188,6 +188,12 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       subtitle: "골반 관절 및 비대칭의 즉각적 교정",
       desc: "삼잘한의원의 대표 시그니처 요법인 '대관절 동기침법'을 접목하여 협착증, 만성 디스크, 좌골신경통, 오십견, 퇴행성 관절염 등 깊숙하고 둔택한 고관절 통증을 직접 치료합니다.",
       diseases: "무릎관절염, 어깨질환: 오십견/회전근개 손상, 척추(협착증/디스크), 외상(스포츠, 교통사고)",
+      diseasesList: [
+        "무릎관절염",
+        "어깨질환 (오십견/회전근개 손상)",
+        "척추 (협착증/디스크)",
+        "외상 (스포츠, 교통사고)"
+      ],
       benefits: [
         "대관절 동기침법을 통한 관절 깊숙한 유착 해제 및 자가 가동범위 확대",
         "국가대표 선수들이 전수받은 침치료 기법으로 빠른 근섬유 부종 해소",
@@ -201,6 +207,12 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       subtitle: "잘 먹고, 잘 통하는 행복한 소화기",
       desc: "복부 불쾌감, 위경련, 상부 역류성 식도염, 설사 및 지독한 장 정체를 상한의학 이론과 정밀 유전자 진단을 통해 과학적으로 치료합니다. 위장 피로도를 경감하여 건강한 영양 흡수를 증폭시킵니다.",
       diseases: "저체중/과체중, 소화기, 대사질환(고혈압, 고지혈증, 당뇨), 불면증",
+      diseasesList: [
+        "저체중 / 과체중",
+        "소화기 질환",
+        "대사질환 (고혈압, 고지혈증, 당뇨)",
+        "불면증"
+      ],
       benefits: [
         "삼잘 보원의 보위 탕약 조제로 위 벽 점막 세포의 탄탄한 자가 복구 보조",
         "복부 가스가 소통되고 단전을 덥혀주는 스마트 온열 및 침구 관리 시스템",
@@ -214,6 +226,11 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       subtitle: "무너진 면역 장벽의 자생 강화",
       desc: "만성 비염, 아토피, 알레르기 두드러기, 천식 등은 체내 면역 단절이 한계치에 다다랐을 때 표출됩니다. 장 장벽의 담음 독소를 기계적으로 디톡스하여 자극물질에 과민 반응하지 않는 림프 세포 순환을 확립시킵니다.",
       diseases: "비염, 결막염, 두드러기, 아토피/천식",
+      diseasesList: [
+        "비염 및 결막염",
+        "두드러기",
+        "아토피 / 천식"
+      ],
       benefits: [
         "장청 해독 탕약 조제로 장 누수 증상 및 전신 혈관 노폐물 정화",
         "항염증 특허 약침 성분 처방으로 피부 비강 점막 장벽의 과립세포 안정화",
@@ -227,6 +244,11 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       subtitle: "항암 부작용 완화 및 종양 미세환경 정화",
       desc: "암 치료 과정에서 발생하는 피로, 메스꺼움, 심한 기력 손실을 겪는 환우분들을 위해 과학적인 면역 조력 보조 약학을 병행합니다. 대학병원 암 스케줄을 무리 없이 완료할 수 있도록 지원합니다.",
       diseases: "재발 및 전이 관리, 항암부작용 관리, 암종과 병기에 따라 다른 치료법 적용",
+      diseasesList: [
+        "재발 및 전이 관리",
+        "항암 부작용 관리",
+        "암종과 병기 맞춤 치료"
+      ],
       benefits: [
         "위암, 대장암, 자궁암 및 유방암 등 암종별 세분화된 진료 프로토콜 도입",
         "종양 억제 면역 인자 분비를 촉진하는 고순도 산삼 약침 요법 진행",
@@ -240,6 +262,11 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       subtitle: "맑은 혈액과 가볍고 활기찬 신체 리듬 치료",
       desc: "체내 세포 속에 잔류해 노화를 재촉하는 대사 가스 찌꺼기와 활성 산소를 소거하여 미토콘드리아 청량도를 높여줍니다. 오장육부의 정화력을 깨우고 활력을 되찾아 줍니다.",
       diseases: "항노화유전자 활성화, 텔로머레이즈 활성화, 항산화시스템 활성화",
+      diseasesList: [
+        "항노화 유전자 활성화",
+        "텔로머레이즈 활성화",
+        "항산화 시스템 활성화"
+      ],
       benefits: [
         "삼잘 장정 디톡스 요법 및 가동성 극대화를 위한 스마트 순환 치료 시스템",
         "중성지방 수치를 제어하고 소화 대사 기능을 정화하는 1:1 디톡스 케어",
@@ -275,7 +302,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             정밀 진료과목
           </h1>
           <p className="text-slate-300 font-sans text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
-            근본적 건강 복원을 향해 달리는<br /> 삼잘의 차별화된 분과 진료와 전문 정맥 요법을 만나보십시오.
+            근본적 건강 복원을 향해 달리는<br /> 삼잘의 차별화된 분과 진료와 <br /> 전문 정맥 요법을 만나보십시오.
           </p>
         </div>
       </div>
@@ -289,13 +316,30 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               <button
                 key={ts.id}
                 onClick={() => setActiveSubTab(ts.id)}
-                className={`py-3 px-2 sm:px-4 md:px-6 text-center text-xs sm:text-sm md:text-base font-sans tracking-wide transition-all duration-300 border-b-2 cursor-pointer whitespace-nowrap -mb-px flex-1 ${
+                className={`py-3 px-0.5 sm:px-4 md:px-6 text-center text-[10px] min-[360px]:text-[11px] min-[400px]:text-xs sm:text-sm md:text-base font-sans tracking-tight sm:tracking-wide transition-all duration-300 border-b-2 cursor-pointer whitespace-nowrap -mb-px flex-1 ${
                   activeSubTab === ts.id
                     ? "border-[#0F2C59] text-[#0F2C59] font-semibold"
                     : "border-transparent text-slate-500 hover:text-[#0F2C59]"
                 }`}
               >
-                {ts.label}
+                {ts.id === "spine" ? (
+                  <>
+                    <span className="inline md:hidden">통증/척추</span>
+                    <span className="hidden md:inline">{ts.label}</span>
+                  </>
+                ) : ts.id === "cancer" ? (
+                  <>
+                    <span className="inline md:hidden">통합암</span>
+                    <span className="hidden md:inline">{ts.label}</span>
+                  </>
+                ) : ts.id === "detox" ? (
+                  <>
+                    <span className="inline md:hidden">해독/노화</span>
+                    <span className="hidden md:inline">{ts.label}</span>
+                  </>
+                ) : (
+                  ts.label
+                )}
               </button>
             ))}
           </div>
@@ -312,7 +356,19 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                   {current.subtitle}
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
-                  {current.title}
+                  {current.title === "통증 & 관절 & 척추 맞춤 회복 클리닉" ? (
+                    <>
+                      <span className="inline sm:hidden">통증&관절&척추<br />맞춤 회복 클리닉</span>
+                      <span className="hidden sm:inline">통증 & 관절 & 척추 맞춤 회복 클리닉</span>
+                    </>
+                  ) : current.title === "비위(脾胃) 및 만성 장내과 클리닉" ? (
+                    <>
+                      <span className="inline sm:hidden">비위 및 만성<br />장내과 클리닉</span>
+                      <span className="hidden sm:inline">비위(脾胃) 및 만성 장내과 클리닉</span>
+                    </>
+                  ) : (
+                    current.title
+                  )}
                 </h3>
               </div>
               <div className="w-12 h-1 bg-[#0F2C59]" />
@@ -325,9 +381,21 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                   <span className="text-xs font-sans text-slate-400 font-normal uppercase tracking-wider block">
                     주요 치료 대상 및 진료 내용
                   </span>
-                  <p className="text-xs sm:text-sm font-sans text-slate-700 font-semibold leading-relaxed">
-                    {current.diseases}
-                  </p>
+                  <div className="text-xs sm:text-sm font-sans text-slate-700 font-semibold leading-relaxed flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-y-1.5 sm:gap-y-1 sm:gap-x-2">
+                    {(current as any).diseasesList ? (
+                      (current as any).diseasesList.map((item: string, idx: number) => (
+                        <span key={idx} className="flex items-center gap-1.5">
+                          <span className="inline sm:hidden text-[#0F2C59] text-[10px] select-none">•</span>
+                          <span>{item}</span>
+                          {idx < (current as any).diseasesList.length - 1 && (
+                            <span className="hidden sm:inline text-slate-300 mx-1">|</span>
+                          )}
+                        </span>
+                      ))
+                    ) : (
+                      <p>{current.diseases}</p>
+                    )}
+                  </div>
                 </div>
               )}
 

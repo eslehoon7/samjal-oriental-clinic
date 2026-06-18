@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 
 interface SignatureTreatmentProps {
   setActiveTab: (tab: string) => void;
@@ -44,31 +45,47 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
   };
 
   return (
-    <section className="pt-24 pb-0 bg-white border-b border-slate-200">
+    <section className="pt-36 sm:pt-44 pb-0 bg-white border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         
         {/* 상단 훈장 문단 */}
-        <div className="text-center space-y-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7 }}
+          className="text-center space-y-4"
+        >
           <p className="text-xs sm:text-sm font-sans text-[#0F2C59] tracking-[0.3em] uppercase font-bold text-center">
             Signature treatments
           </p>
           <h2 className="text-3xl sm:text-4xl font-sans text-[#0F172A] font-bold tracking-tight text-center">
-            삼잘한의원의 고유 치유 비법
+            삼잘한의원의<br className="sm:hidden" /> 고유 치유 비법
           </h2>
           <div className="w-12 h-0.5 bg-[#0F2C59] mx-auto mt-4" />
           <p className="text-sm font-sans text-slate-500 max-w-lg mx-auto leading-relaxed pt-2 text-center">
-            증상의 표면만을 가리는 일시적 처방이 아닙니다. 원인이 깃든 심부와 근본부터 다스리는 삼잘만의 3대 비법 클리닉을 소개합니다.
+            증상의 표면만을 가리는 일시적 처방이 아닙니다.<br /> 원인이 깃든 심부와 근본부터 다스리는<br /> 삼잘만의 3대 비법 클리닉을 소개합니다.
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* 3대 비법 한페이지 가득 차는 와이드 패널 아코디언 쇼케이스 (Full Wide Immersive Showcase) */}
-      <div className="w-full h-[550px] sm:h-[650px] flex flex-col md:flex-row overflow-hidden border-t border-b border-slate-200 bg-[#0F172A] select-none shadow-xl">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full h-[850px] sm:h-[750px] md:h-[650px] flex flex-col md:flex-row overflow-hidden border-t border-b border-slate-200 bg-[#0F172A] select-none shadow-xl"
+      >
         {treatments.map((tr, index) => (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: index * 0.15 }}
             onClick={() => handleCardClick(tr.targetSubTab)}
-            className="relative flex-1 group hover:flex-[2.5] transition-all duration-700 ease-in-out overflow-hidden cursor-pointer flex flex-col justify-end p-8 sm:p-12 border-b md:border-b-0 md:border-r last:border-r-0 border-white/10"
+            className="relative flex-1 group hover:flex-[1.8] md:hover:flex-[2.5] transition-all duration-700 ease-in-out overflow-hidden cursor-pointer flex flex-col justify-end pt-16 pb-8 px-6 sm:p-12 border-b md:border-b-0 md:border-r last:border-r-0 border-white/10"
           >
             {/* 배경 이미지 및 오버레이 */}
             <div className="absolute inset-0 z-0">
@@ -76,7 +93,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
               <img
                 src={tr.image}
                 alt={tr.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-in-out"
+                className="w-full h-full object-cover group-hover:scale-[1.025] md:group-hover:scale-110 transition-transform duration-1000 ease-in-out"
                 referrerPolicy="no-referrer"
               />
               {/* 기본적으로 어둠을 주어 텍스트 시인성을 확보하고, 호버시 더 선명하게 가로막 */}
@@ -86,7 +103,7 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
             </div>
 
             {/* 본문 정보 영역 */}
-            <div className="relative z-20 space-y-4 pointer-events-none">
+            <div className="relative z-20 space-y-3 sm:space-y-4 pointer-events-none">
               {/* 카테고리 태그 */}
               <div>
                 <span className="inline-block px-3 py-1 bg-[#0F2C59] border border-[#0F2C59]/40 text-white text-[10px] sm:text-xs font-sans font-bold tracking-widest uppercase rounded shadow-sm">
@@ -95,19 +112,19 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
               </div>
 
               {/* 제목 */}
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <div className="flex items-center text-[#93C5FD]">
                   <span className="text-xs font-sans font-bold tracking-widest uppercase">
-                    {tr.title}
+                     {tr.title}
                   </span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-sans text-white font-bold leading-snug tracking-tight">
+                <h3 className="text-lg sm:text-2xl font-sans text-white font-bold leading-snug tracking-tight">
                   {tr.desc}
                 </h3>
               </div>
 
               {/* 호버 시 부드럽게 아코디언처럼 위로 서서히 열리는 정밀 디테일 섹션 */}
-              <div className="opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-[160px] transition-all duration-700 ease-in-out overflow-hidden space-y-4">
+              <div className="opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-[160px] transition-all duration-700 ease-in-out overflow-hidden space-y-3 sm:space-y-4">
                 <p className="text-xs sm:text-sm font-sans text-slate-300 leading-relaxed pt-2">
                   {tr.detail}
                 </p>
@@ -118,9 +135,9 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
               </div>
             </div>
 
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

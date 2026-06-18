@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "motion/react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MainVisual from "./components/MainVisual";
@@ -53,29 +54,37 @@ export default function App() {
             {/* 4. 홈 미니 베너 (AI 삼잘 건강 분석 권유) */}
             <section className="py-16 bg-gradient-to-br from-[#0B1528] to-[#1E293B] text-slate-200 relative overflow-hidden border-t border-b border-[#0F2C59]/40">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#3B82F6]/10 rounded-full blur-3xl" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+              <motion.div 
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4"
+              >
                 <span className="text-[#93C5FD] text-xs font-sans tracking-widest uppercase flex items-center justify-center">
                   Free Web Consultation
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-sans text-white font-bold tracking-tight">
-                  몸 속 잠든 회복 에너지를 측정해 보셨나요?
+                  몸 속 잠든 회복 에너지를<br className="sm:hidden" /> 측정해 보셨나요?
                 </h3>
                 <p className="text-sm font-sans text-slate-300 max-w-lg mx-auto">
                   삼잘한의원이 무상 설계해 둔 AI 명의 자가 진단을 통해 <br />
                   귀하의 수면 불만족 및 속 쓰림, 장 독소를 그 자리에서 분석하고 한방 처방 레포트를 받으세요.
                 </p>
                 <div className="pt-4">
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setActiveTab("reservation");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className="px-8 py-3 bg-[#0F2C59] hover:bg-blue-700 text-white transition-all duration-300 rounded-lg text-sm font-sans font-bold tracking-wider hover:scale-[1.02] active:scale-[0.98] border border-blue-500/20 shadow-lg shadow-blue-900/40"
+                    className="px-8 py-3 bg-[#0F2C59] hover:bg-blue-700 text-white transition-all duration-300 rounded-lg text-sm font-sans font-bold tracking-wider border border-blue-500/20 shadow-lg shadow-blue-900/40 cursor-pointer"
                   >
                     AI 삼잘 자가진단 바로받기
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             </section>
 
           </div>

@@ -1,5 +1,6 @@
 import { Calendar, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
   activeTab: string;
@@ -10,6 +11,7 @@ interface HeaderProps {
 export default function Header({ activeTab, setActiveTab, openReservationModal }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,7 +49,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isTransparentMode
         ? "bg-transparent border-b border-white/10 shadow-none text-white"
-        : "bg-white/95 backdrop-blur-md border-b border-slate-200/85 shadow-[0_2px_15px_-3px_rgba(15,23,42,0.05)] text-[#0F172A]"
+        : "bg-white/65 backdrop-blur-md border-b border-slate-200/85 shadow-[0_2px_15px_-3px_rgba(15,23,42,0.05)] text-[#0F172A]"
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex justify-between items-center transition-all duration-300 ${isTransparentMode ? "h-24" : "h-20"}`}>
@@ -141,36 +143,46 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
       </div>
 
       {/* 모바일 전체 화면 드롭다운 */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-2 pb-6 space-y-1 shadow-inner animate-fadeIn">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleMenuClick(item.id)}
-              className={`block w-full text-left px-4 py-3 rounded-lg text-base font-sans tracking-wider transition-colors cursor-pointer ${
-                activeTab === item.id
-                  ? "bg-[#0F2C59]/10 text-[#0F2C59] font-semibold"
-                  : "text-[#0F172A]/80 hover:bg-slate-100"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-          <div className="pt-4 px-4">
-            <button
-              onClick={() => {
-                setActiveTab("reservation");
-                setIsOpen(false);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="w-full flex items-center justify-center gap-2 bg-[#0F2C59] text-white py-3 rounded-lg text-sm font-sans tracking-wider shadow animate-scaleUp cursor-pointer"
-            >
-              <Calendar className="w-4 h-4" />
-              예약 / AI 자가진단 신청
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="md:hidden bg-white/70 backdrop-blur-md border-t border-slate-200/50 overflow-hidden shadow-inner"
+          >
+            <div className="px-4 pt-2 pb-6 space-y-1">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleMenuClick(item.id)}
+                  className={`block w-full text-left px-4 py-3 rounded-lg text-base font-sans tracking-wider transition-colors cursor-pointer ${
+                    activeTab === item.id
+                      ? "bg-[#0F2C59]/30 text-[#0F2C59] font-semibold"
+                      : "text-[#0F172A]/80 hover:bg-slate-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="pt-4">
+                <button
+                  onClick={() => {
+                    setActiveTab("reservation");
+                    setIsOpen(false);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-[#0F2C59] text-white py-3 rounded-lg text-sm font-sans tracking-wider shadow cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4" />
+                  예약 / AI 자가진단 신청
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

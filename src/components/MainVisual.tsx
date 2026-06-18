@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface MainVisualProps {
   setActiveTab: (tab: string) => void;
@@ -39,6 +40,11 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
       image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EB%8C%80%EC%99%B8%ED%99%9C%EB%8F%991_18%ED%95%AD%EC%A0%80%EC%9A%B0.jpg?alt=media&token=6c8894f2-6aa3-48a6-a7c1-bdbfd6aee6ba",
       title: "경력으로 검증된 전문성",
       subtitle: "신경과 심부 고질 깊숙한 통증의 원인 교정",
+      desc: (
+        <>
+          국제 대회 의료 지원 등 신뢰받는 한방 침구 및 맞춤 진료
+        </>
+      ),
       linkTab: "intro",
       subTab: "activities",
       positionClass: "object-[center_30%]",
@@ -90,43 +96,77 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
               onClick={() => handleSlideClick(slide)}
               src={slide.image}
               alt={slide.title}
-              className={`w-full h-full object-cover ${slide.positionClass || "object-center"} transition-transform duration-[4000ms] ease-out cursor-pointer`}
+              className={`w-full h-full object-cover ${slide.positionClass || "object-center"} transition-transform duration-[4000ms] ease-out cursor-pointer ${idx === currentIndex ? "animate-mobile-pan" : ""}`}
               style={{ transform: idx === currentIndex ? "scale(1.05)" : "scale(1)" }}
               referrerPolicy="no-referrer"
             />
             {/* 정교한 서예 및 타이포그래피 콘텐츠 */}
             <div className="absolute inset-0 z-20 flex items-center">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                <div className="max-w-2xl space-y-4 sm:space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 bg-[#0F2C59]/30 border border-[#0F2C59]/60 rounded-full text-slate-100 text-xs">
-                    <span className="font-sans tracking-widest">{slide.subtitle}</span>
-                  </div>
-                  <h2 className="text-xl sm:text-3xl md:text-[44px] lg:text-5xl font-sans text-white font-bold tracking-tight drop-shadow-md whitespace-nowrap">
-                    {slide.title}
-                  </h2>
-                  {slide.desc && (
-                    <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed font-light drop-shadow">
-                      {slide.desc}
-                    </p>
+                <AnimatePresence mode="wait">
+                  {idx === currentIndex && (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="max-w-2xl space-y-4 sm:space-y-6 transform translate-y-[50px] sm:translate-y-0"
+                    >
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.5 }}
+                        className="inline-flex items-center px-3 py-1 bg-[#0F2C59]/30 border border-[#0F2C59]/60 rounded-full text-slate-100 text-xs"
+                      >
+                        <span className="font-sans tracking-widest">{slide.subtitle}</span>
+                      </motion.div>
+                      
+                      <motion.h2 
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.22, duration: 0.6 }}
+                        className="text-xl sm:text-3xl md:text-[44px] lg:text-5xl font-sans text-white font-bold tracking-tight drop-shadow-md whitespace-nowrap"
+                      >
+                        {slide.title}
+                      </motion.h2>
+
+                      {slide.desc && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.34, duration: 0.6 }}
+                          className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed font-light drop-shadow"
+                        >
+                          {slide.desc}
+                        </motion.p>
+                      )}
+
+                      <motion.div 
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.46, duration: 0.6 }}
+                        className="pt-16 sm:pt-10 flex flex-wrap gap-4"
+                      >
+                        <button
+                          onClick={() => handleSlideClick(slide)}
+                          className="px-6 py-3 bg-[#0F2C59] hover:bg-[#1E40AF] text-white transition-all duration-300 rounded-lg text-sm font-sans font-semibold tracking-wider shadow-lg flex items-center gap-1.5 cursor-pointer hover:scale-[1.03] active:scale-[0.98]"
+                        >
+                          자세히 알아보기
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveTab("reservation");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white border border-slate-300/40 hover:border-white transition-all rounded-lg text-sm font-sans tracking-wider hover:scale-[1.03] active:scale-[0.98]"
+                        >
+                          온라인 예약 / AI 분석
+                        </button>
+                      </motion.div>
+                    </motion.div>
                   )}
-                  <div className="pt-4 flex flex-wrap gap-4">
-                    <button
-                      onClick={() => handleSlideClick(slide)}
-                      className="px-6 py-3 bg-[#0F2C59] hover:bg-[#1E40AF] text-white transition-all duration-300 rounded-lg text-sm font-sans font-semibold tracking-wider shadow-lg flex items-center gap-1.5 cursor-pointer"
-                    >
-                      자세히 알아보기
-                    </button>
-                    <button
-                      onClick={() => {
-                        setActiveTab("reservation");
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white border border-slate-300/40 hover:border-white transition-all rounded-lg text-sm font-sans tracking-wider"
-                    >
-                      온라인 예약 / AI 분석
-                    </button>
-                  </div>
-                </div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -135,14 +175,14 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
         {/* 좌우 이동 화살표 */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/15 hover:bg-white/35 text-white transition-colors"
+          className="absolute left-4 top-[calc(50%+50px)] sm:top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/15 hover:bg-white/35 text-white transition-colors"
           aria-label="이전 슬라이드"
         >
           <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/15 hover:bg-white/35 text-white transition-colors"
+          className="absolute right-4 top-[calc(50%+50px)] sm:top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/15 hover:bg-white/35 text-white transition-colors"
           aria-label="다음 슬라이드"
         >
           <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />

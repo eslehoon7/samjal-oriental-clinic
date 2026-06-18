@@ -178,13 +178,20 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
               <button
                 key={ts.id}
                 onClick={() => setSubTab(ts.id)}
-                className={`py-3 px-2 sm:px-4 md:px-6 text-center text-xs sm:text-sm md:text-base font-sans tracking-wide transition-all duration-300 border-b-2 cursor-pointer whitespace-nowrap -mb-px flex-1 ${
+                className={`py-3 px-1 sm:px-4 md:px-6 text-center text-[10px] min-[360px]:text-xs sm:text-sm md:text-base font-sans tracking-wide transition-all duration-300 border-b-2 cursor-pointer whitespace-nowrap -mb-px flex-1 ${
                   subTab === ts.id
                     ? "border-[#0F2C59] text-[#0F2C59] font-semibold"
                     : "border-transparent text-slate-500 hover:text-[#0F2C59]"
                 }`}
               >
-                {ts.label}
+                {ts.id === "doctors" ? (
+                  <>
+                    <span className="inline md:hidden">연구·임상</span>
+                    <span className="hidden md:inline">{ts.label}</span>
+                  </>
+                ) : (
+                  ts.label
+                )}
               </button>
             ))}
           </div>
@@ -239,7 +246,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="py-10 pl-11 pr-5 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
                       <div className="relative inline-block">
                         <h4 className="text-lg sm:text-xl font-sans font-bold text-[#0F172A] tracking-wide group-hover:text-[#0F2C59] transition-colors duration-300">수승화강</h4>
@@ -261,7 +268,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20 pointer-events-none" />
                   </div>
-                  <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="py-10 pl-11 pr-5 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
                       <div className="relative inline-block">
                         <h4 className="text-lg sm:text-xl font-sans font-bold text-[#0F172A] tracking-wide group-hover:text-[#0F2C59] transition-colors duration-300">위수배 안녕</h4>
@@ -283,7 +290,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20 pointer-events-none" />
                   </div>
-                  <div className="py-10 px-8 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="py-10 pl-11 pr-5 sm:py-12 sm:px-10 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3 text-left">
                       <div className="relative inline-block">
                         <h4 className="text-lg sm:text-xl font-sans font-bold text-[#0F172A] tracking-wide group-hover:text-[#0F2C59] transition-colors duration-300">대관절 동기침법(고유의 침술)</h4>

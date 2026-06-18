@@ -1,5 +1,6 @@
 import { HeartPulse, CheckCircle2 } from "lucide-react";
 import TransparentImage from "./TransparentImage";
+import { motion } from "motion/react";
 
 export default function SamjalValue() {
   const values = [
@@ -21,11 +22,17 @@ export default function SamjalValue() {
   ];
 
   return (
-    <section className="py-20 bg-[#F8FAFC] border-b border-slate-200">
+    <section className="py-20 bg-[#F8FAFC] border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 상단 타이포그래피 안내 */}
-        <div className="text-center space-y-3 mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7 }}
+          className="text-center space-y-3 mb-16"
+        >
           <p className="text-xs sm:text-sm font-sans text-[#0F2C59] tracking-[0.3em] uppercase font-bold">
             Health Philosophy & Harmony
           </p>
@@ -34,16 +41,23 @@ export default function SamjalValue() {
           </h2>
           <div className="w-12 h-0.5 bg-[#0F2C59] mx-auto mt-4" />
           <p className="text-sm font-sans text-slate-500 max-w-xl mx-auto pt-2 leading-relaxed">
-            우리 몸 본연의 자생력을 되찾는 한의 치료, 삼잘한의원입니다.<br />
+            우리 몸 본연의 자생력을 되찾는 한의 치료,<br className="sm:hidden" /> 삼잘한의원입니다.<br />
             끊임없는 연구와 세심한 진료로 함께하겠습니다.
           </p>
-        </div>
+        </motion.div>
 
         {/* 2컬럼 레이아웃 (왼쪽 귀여운 캐릭터 드로잉, 오른쪽 명인 텍스트 영역) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* 왼쪽 삼잘 일러스트 캐릭터 뷰포트 (사용자 그림 1:1 완벽 정위 매치) */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-white border border-slate-200 rounded-2xl shadow-md relative overflow-hidden group">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -5, scale: 1.01, transition: { duration: 0.3 } }}
+            className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-white border border-slate-200 rounded-2xl shadow-md relative overflow-hidden group cursor-pointer"
+          >
             <div className="w-full max-w-[340px] aspect-square overflow-hidden rounded-xl bg-transparent">
               <TransparentImage
                 src="/images/samjal_characters_1779805299286.png"
@@ -58,22 +72,26 @@ export default function SamjalValue() {
             <p className="text-[#64748B] font-sans text-xs tracking-wider uppercase mt-1">
               well sleep · well digest · well detox
             </p>
-          </div>
+          </motion.div>
 
           {/* 오른쪽 3대 철학 텍스트 상세 (사용자 그림 글자 완벽 100% 매치 및 세련 확장) */}
           <div className="lg:col-span-7 space-y-10 pl-0 lg:pl-6">
             {values.map((val, index) => (
-              <div 
+              <motion.div 
                 key={index} 
-                className="relative pl-6 sm:pl-10 space-y-2 group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                className="relative pl-8 sm:pl-10 space-y-2 group"
               >
                 {/* 세련된 한방 자인 표식 */}
-                <span className="absolute left-0 top-1 text-2xl font-sans font-extrabold text-slate-200 group-hover:text-[#0F2C59] transition-colors duration-300">
+                <span className="absolute left-0 -top-0.5 sm:left-0 sm:top-1 text-2xl font-sans font-extrabold text-slate-200 group-hover:text-[#0F2C59] transition-colors duration-300">
                   0{index + 1}
                 </span>
                 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <h4 className="text-xl sm:text-2xl font-sans font-bold text-[#0F172A] hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xl sm:text-2xl font-sans font-bold text-[#0F172A] group-hover:text-[#0F2C59] transition-colors">
                     {val.title}
                   </h4>
                   <span className="inline-flex self-start sm:self-center px-2 py-0.5 bg-[#0F2C59]/10 text-[#0F2C59] text-[10px] sm:text-xs font-sans rounded border border-[#0F2C59]/20 uppercase font-semibold">
@@ -84,7 +102,7 @@ export default function SamjalValue() {
                 <p className="text-[15px] sm:text-[17px] font-sans text-slate-600 leading-relaxed tracking-wide pt-2 border-l-2 border-slate-200 pl-4 group-hover:border-[#0F2C59] transition-all">
                   {val.desc}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
 
