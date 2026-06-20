@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -14,6 +14,42 @@ import SubAdmin from "./components/SubAdmin";
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [introSubTab, setIntroSubTab] = useState("philosophy");
+
+  // 메뉴 변경 시 화면 최상단으로 부드럽게 스크롤 (모바일 및 전 기기 적용)
+  useEffect(() => {
+    // 즉시 최상단 스크롤
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+    document.documentElement.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+    // 모바일 드로어가 닫히면서 레이아웃 높이가 순간 변화하거나, 애니메이션 중일 때 스크롤이 끊기지 않도록
+    // 단계별(50ms, 150ms, 350ms)로 다시 한번 최상단 정렬을 잡아줍니다.
+    const t1 = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+    }, 50);
+
+    const t2 = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+    }, 200);
+
+    const t3 = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+    }, 400);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [activeTab]);
 
   // 모달 예약 지원
   const openReservationModal = () => {

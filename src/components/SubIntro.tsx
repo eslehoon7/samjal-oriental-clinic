@@ -212,18 +212,20 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     &ldquo;몸의 자생력을 일깨워 <br /> 건강함을 되찾아 드립니다&rdquo;
                   </h3>
                   <div className="w-12 h-1 bg-[#0F2C59]" />
-                  <p className="text-base sm:text-lg font-sans text-slate-600 leading-relaxed font-light">
-                    안녕하세요, 삼잘한의원 원장단입니다. <br />
-                    경희대 동방의학 원리를 깊게 이수한 <strong className="font-bold text-[#0F172A]">전문의들의 노하우</strong>와,<br />
-                    세계적인 무대에서 태극전사들을 치료한 <strong className="font-bold text-[#0F172A]">임상 통계기술</strong>을 결합하여<br />
+                  <p className="text-sm sm:text-lg font-sans text-slate-600 leading-relaxed font-light">
+                    안녕하세요, 삼잘한의원 원장단입니다.<br />
+                    경희대 동방의학 원리를 깊게 이수한 <br className="block sm:hidden" />
+                    <strong className="font-bold text-[#0F172A]">전문의들의 노하우</strong>와,<br className="hidden sm:block" />
+                    세계적인 무대에서 태극전사들을<br className="block sm:hidden" />
+                    치료한 <strong className="font-bold text-[#0F172A]">임상 통계기술</strong>을 결합하여 <br />
                     <strong className="font-bold text-[#0F172A]">근본적인 치료 대안</strong>을 제시합니다.
                   </p>
-                  <p className="text-sm font-sans text-slate-500 leading-relaxed font-light">
-                    우리 인체는 스스로 복원하고 이겨내는 <strong className="font-bold text-[#0F172A]">무한한 잠재 능력(자생력)</strong>이 구비되어 있습니다.<br />
-                    하지만 수면 상태가 어지럽고, 비위에 거친 가스가 차 소화가 불안하며, <br />
-                    배하수 장벽이 해독되지 못하면 아무리 훌륭한 신약을 복용해도 <br />
-                    병증은 일시적으로 가라앉을 뿐 <strong className="text-[#0F2C59] font-bold">완치에 다다를 수 없습니다.</strong><br />
-                    삼잘한의원은 이 <strong className="font-bold text-[#0F172A]">세 가지 인체 근원적 통로</strong>를 깨끗이 세정하고 채워 <br />
+                  <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed font-light">
+                    우리 인체는 스스로 복원하고 이겨내는<br className="block sm:hidden" /> <strong className="font-bold text-[#0F172A]">무한한 잠재 능력(자생력)</strong>이 구비되어 있습니다.<br />
+                    하지만 수면 상태가 어지럽고, 비위에 거친 가스가 차 소화가<br className="block sm:hidden" /> 불안하며, <br className="hidden sm:block" />
+                    배하수 장벽이 해독되지 못하면 아무리 훌륭한<br className="block sm:hidden" /> 신약을 복용해도 <br className="hidden sm:block" />
+                    병증은 일시적으로 가라앉을 뿐<br className="block sm:hidden" /> <strong className="text-[#0F2C59] font-bold">완치에 다다를 수 없습니다.</strong><br />
+                    삼잘한의원은 이 <strong className="font-bold text-[#0F172A]">세 가지 인체 근원적 통로</strong>를 <br className="block sm:hidden" /> 깨끗이 세정하고 채워 <br className="hidden sm:block" />
                     건강을 <strong className="font-bold text-[#0F172A]">뿌리부터 수립</strong>해 드립니다.
                   </p>
                 </div>
@@ -372,7 +374,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     Research & Clinical Partners
                   </span>
                   <h2 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold tracking-tight">
-                    삼잘에센셜 연구 자문진 및 임상 파트너
+                    삼잘에센셜 연구 자문진 및<br className="block sm:hidden" /> 임상 파트너
                   </h2>
                 </div>
 
@@ -399,7 +401,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                         김유정 박사
                       </h4>
                       <p className="text-base sm:text-lg font-sans text-[#0F2C59] leading-relaxed italic font-medium pt-1">
-                        &ldquo;약재 성분 추출 최적화와 제형 연구를 통해 처방의 생체 <br /> 이용률을 높이는 천연물 과학 전문가&rdquo;
+                        &ldquo;약재 성분 추출 최적화와 제형 연구를 통해<br className="block sm:hidden" /> 처방의 생체 <br className="hidden sm:block" /> 이용률을 높이는 천연물 과학 전문가&rdquo;
                       </p>
                     </div>
 
@@ -452,7 +454,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                         </div>
                         <div>
                           <p className="text-sm sm:text-base font-sans font-bold text-[#0F172A]">
-                            대표 저서: 《아로마테라피 클래스》 <span className="text-[#0F2C59] text-xs font-normal border border-[#0F2C59]/30 px-1.5 py-0.5 rounded bg-slate-100">(중앙대학교 출판사)</span>
+                            대표 저서: 《아로마테라피 클래스》 <span className="block sm:inline-block mt-1 sm:mt-0 sm:ml-2 text-[#0F2C59] text-xs font-normal border border-[#0F2C59]/30 px-1.5 py-0.5 rounded bg-slate-100 w-fit">(중앙대학교 출판사)</span>
                           </p>
                           <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed mt-0.5">
                             천연 아로마 및 과학적 한방 에센셜 성분을 체계와 적응증에 맞추어 현대적인 일상 가이드라인과 힐링 솔루션으로 구성한 전문 서적을 집필하였습니다.
@@ -504,7 +506,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   National Team Doctor Activities
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold">
-                  태극전사들이 믿고 의지한 삼잘의 치료 손길
+                  태극전사들이 믿고 의지한<br className="block sm:hidden" /> 삼잘의 치료 손길
                 </h3>
               </div>
               
@@ -532,15 +534,22 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                               </div>
                             </div>
                             
-                            {/* 중앙 타임라인 도트 */}
-                            <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                            {/* 중앙 타임라인 도트 (PC 전용) */}
+                            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center z-20">
                               <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
                                 <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
                               </div>
                             </div>
                             
                             {/* 텍스트 컨텐츠 (오른쪽) */}
-                            <div className="space-y-2.5 order-2 pl-12 md:pl-0">
+                            <div className="space-y-2.5 order-2 pl-12 md:pl-0 relative">
+                              {/* 모바일 타임라인 도트 (h4 기준 가로중심 정렬) */}
+                              <div className="md:hidden absolute left-2 top-4 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                                <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
+                                  <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                                </div>
+                              </div>
+
                               <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
                                 {act.title}
                               </h4>
@@ -555,7 +564,14 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                         ) : (
                           <>
                             {/* 텍스트 컨텐츠 (왼쪽) */}
-                            <div className="space-y-2.5 order-2 md:order-1 text-left md:text-right pl-12 md:pl-0">
+                            <div className="space-y-2.5 order-2 md:order-1 text-left md:text-right pl-12 md:pl-0 relative">
+                              {/* 모바일 타임라인 도트 (h4 기준 가로중심 정렬) */}
+                              <div className="md:hidden absolute left-2 top-4 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                                <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
+                                  <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                                </div>
+                              </div>
+
                               <h4 className="text-2xl sm:text-3xl font-sans text-[#0F2C59] font-semibold leading-tight">
                                 {act.title}
                               </h4>
@@ -567,8 +583,8 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                               </p>
                             </div>
                             
-                            {/* 중앙 타임라인 도트 */}
-                            <div className="absolute left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
+                            {/* 중앙 타임라인 도트 (PC 전용) */}
+                            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center z-20">
                               <div className="w-5 h-5 rounded-full border border-[#0F2C59]/40 bg-white flex items-center justify-center shadow-sm">
                                 <div className="w-2 h-2 rounded-full bg-[#0F2C59]" />
                               </div>

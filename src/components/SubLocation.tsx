@@ -432,23 +432,23 @@ export default function SubLocation() {
         <div className="flex justify-center gap-4 mb-10 max-w-md mx-auto">
           <button
             onClick={() => setActiveBranch("nowon")}
-            className={`flex-1 py-4 text-center font-sans text-base tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
+            className={`flex-1 py-3 sm:py-4 text-center font-sans text-sm sm:text-base tracking-tight sm:tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
               activeBranch === "nowon"
                 ? "bg-[#0F2C59] border-[#0F2C59] text-white font-bold shadow-md"
                 : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
             }`}
           >
-            노원점 (전준영 대표원장)
+            노원점<br className="block sm:hidden" />(전준영 대표원장)
           </button>
           <button
             onClick={() => setActiveBranch("guri")}
-            className={`flex-1 py-4 text-center font-sans text-base tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
+            className={`flex-1 py-3 sm:py-4 text-center font-sans text-sm sm:text-base tracking-tight sm:tracking-widest rounded-xl border transition-all duration-300 cursor-pointer ${
               activeBranch === "guri"
                 ? "bg-[#0F2C59] border-[#0F2C59] text-white font-bold shadow-md"
                 : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
             }`}
           >
-            구리점 (제정진 대표원장)
+            구리점<br className="block sm:hidden" /> (제정진 대표원장)
           </button>
         </div>
 
@@ -460,7 +460,15 @@ export default function SubLocation() {
           {/* 인트로: 중앙 정렬된 가로 인사말 */}
           <div className="flex flex-col items-center gap-5 text-center relative z-10 max-w-3xl mx-auto">
             <h3 className="text-base sm:text-lg font-sans text-[#0F2C59] font-extrabold leading-relaxed text-center">
-              {current.greeting.quote}
+              {activeBranch === "nowon" ? (
+                <>
+                  “몸의 자생력을 일깨워<br className="block sm:hidden" /> 건강함을 되찾아 드립니다”
+                </>
+              ) : (
+                <>
+                  “기본부터 탄탄하게,<br className="block sm:hidden" /> 여러분의 건강을 지키겠습니다”
+                </>
+              )}
             </h3>
             <div className="h-[1px] w-12 bg-slate-200 mx-auto" />
             <div className="space-y-2.5 text-center">
@@ -717,14 +725,14 @@ export default function SubLocation() {
             {/* 좌우 이동 방향 제어 버튼 */}
             <button 
               onClick={() => scroll("left")}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-[#0F2C59] border border-slate-200 shadow-md flex items-center justify-center opacity-0 group-hover/track:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-50 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-[#0F2C59] border border-slate-200 shadow-md flex items-center justify-center opacity-50 md:opacity-0 md:group-hover/track:opacity-50 hover:!opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
               aria-label="이전 사진 보기"
             >
               <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
             </button>
             <button 
               onClick={() => scroll("right")}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-[#0F2C59] border border-slate-200 shadow-md flex items-center justify-center opacity-0 group-hover/track:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-50 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-[#0F2C59] border border-slate-200 shadow-md flex items-center justify-center opacity-50 md:opacity-0 md:group-hover/track:opacity-50 hover:!opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
               aria-label="다음 사진 보기"
             >
               <ChevronRight className="w-5 h-5 stroke-[2.5]" />
@@ -978,9 +986,9 @@ export default function SubLocation() {
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-sans text-slate-600">
                 {current.features.map((ft, index) => (
-                  <div key={index} className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="text-[#0F2C59] font-bold">✓</span>
-                    <span className="leading-tight">{ft}</span>
+                  <div key={index} className="flex items-center gap-2 border-b border-slate-100 pb-2 min-w-0">
+                    <span className="text-[#0F2C59] font-bold flex-shrink-0">✓</span>
+                    <span className="text-[11px] sm:text-xs leading-tight tracking-tight whitespace-nowrap sm:whitespace-normal overflow-hidden text-ellipsis">{ft}</span>
                   </div>
                 ))}
               </div>
