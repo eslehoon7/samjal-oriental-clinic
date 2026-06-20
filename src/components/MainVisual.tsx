@@ -121,7 +121,7 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
                       >
                         <span className="font-sans tracking-widest">{slide.subtitle}</span>
                       </motion.div>
-                      
+
                       <motion.h2 
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}

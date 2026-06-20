@@ -113,7 +113,7 @@ export default function Footer({ setActiveTab }: FooterProps) {
                   <span className="text-xl font-bold font-sans text-white tracking-widest block">
                     031-555-3555
                   </span>
-                  <span className="text-[10px] text-slate-400">구리본점 및 대표접수</span>
+                  <span className="text-[10px] text-slate-400">구리점 상담 번호</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
